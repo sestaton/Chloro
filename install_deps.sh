@@ -1,3 +1,4 @@
+mkdir src data bin
 cd src
 
 ## Velvet
