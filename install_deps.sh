@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir src data bin
+mkdir src data
 cd src
 
 ## Velvet
