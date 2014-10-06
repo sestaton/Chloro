@@ -1,3 +1,5 @@
+#!/bin/bash
+
 mkdir src data bin
 cd src
 
