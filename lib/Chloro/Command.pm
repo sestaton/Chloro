@@ -1,18 +1,18 @@
-package HMMER2GO::Command;
+package Chloro::Command;
 
 use App::Cmd::Setup -command;
 
 =head1 NAME
 
-HMMER2GO::Command - Control class for setting global options with HMMER2GO
+Chloro::Command - Control class for setting global options with Chloro
 
 =head1 VERSION
 
-Version 0.06
+Version 0.01
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.01';
 
 sub opt_spec {
     my ( $class, $app ) = @_;
@@ -41,7 +41,7 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 =head1 BUGS
 
 Please report any bugs or feature requests through the project site at 
-L<https://github.com/sestaton/HMMER2GO/issues>. I will be notified,
+L<https://github.com/sestaton/Chloro/issues>. I will be notified,
 and there will be a record of the issue. Alternatively, I can also be 
 reached at the email address listed above to resolve any questions.
 
@@ -49,7 +49,7 @@ reached at the email address listed above to resolve any questions.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc HMMER2GO::Command
+    perldoc Chloro::Command
 
 
 =head1 LICENSE AND COPYRIGHT

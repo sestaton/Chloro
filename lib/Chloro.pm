@@ -1,18 +1,18 @@
-package HMMER2GO;
+package Chloro;
  
 use App::Cmd::Setup -app;
 
 =head1 NAME
 
-HMMER2GO - Annotate DNA sequences for Gene Ontology terms
+Chloro - 
 
 =head1 VERSION
 
-Version 0.06
+Version 0.01
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.01';
 
 sub global_opt_spec {
     [ 'man|m' => "Get the manual entry for a command" ];
@@ -25,7 +25,7 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 =head1 BUGS
 
 Please report any bugs or feature requests through the project site at 
-L<https://github.com/sestaton/HMMER2GO/issues>. I will be notified,
+L<https://github.com/sestaton/Chloro/issues>. I will be notified,
 and there will be a record of the issue. Alternatively, I can also be 
 reached at the email address listed above to resolve any questions.
 
@@ -33,7 +33,7 @@ reached at the email address listed above to resolve any questions.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc HMMER2GO
+    perldoc Chloro
 
 
 =head1 LICENSE AND COPYRIGHT
