@@ -5,7 +5,6 @@ use 5.010;
 use strict;
 use warnings;
 use Chloro -command;
-use IPC::System::Simple qw(system);
 use Time::HiRes qw(gettimeofday);
 use LWP::UserAgent;
 use WWW::Mechanize;
@@ -14,10 +13,20 @@ use XML::LibXML;
 use File::Basename;
 use Try::Tiny;
 use Pod::Usage;
+no if $] >= 5.018, 'warnings', "experimental::smartmatch";
 
 sub opt_spec {
-    return (    
-	[ "outfile|o=s",  "A file to place the Pfam2GO mappings" ],
+    return (
+	[ "all",                 "Download files of the specified type for all species in the database." ],
+	[ "available",           "Print the number of species available in CpBase and exit." ],
+	[ "db|d=s",   "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
+        [ "format|f=s",          "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
+        [ "genus|g=s",           "The name of a genus query." ],
+	[ "species|s=s",         "The name of a species to query." ],
+        [ "statistics",  "Get assembly statistics for the specified species." ],
+	[ "assemblies",      "Specifies that the chlorplast genome assemblies should be fetched." ],
+        [ "lineage|l", "Return the order, family, genus and species (tab separated) of all entries." ],
+	[ "outfile|o=s",         "A file to log the results of each search" ],
     );
 }
 
@@ -29,7 +38,7 @@ sub validate_args {
 	system([0..5], "perldoc $command");
     }
     else {
-	$self->usage_error("Too few arguments.") unless $opt->{outfile};
+	$self->usage_error("Too few arguments.") if !%$opt;
     }
 } 
 
@@ -37,79 +46,71 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     exit(0) if $self->app->global_options->{man};
-    my $outfile = $opt->{outfile};
-
-    my $result  = _fetch_mappings($outfile);
+    my $result = _check_args($opt);
 }
 
-sub check_args {
-
+sub _check_args {
+    my ($opt) = @_;
+    
+    my $outfile       = $opt->{outfile};
+    my $db            = $opt->{db};
+    my $all           = $opt->{all};
+    my $format        = $opt->{format};
+    my $genus         = $opt->{genus};
+    my $species       = $opt->{species};
+    my $statistics    = $opt->{statistics};
+    my $available     = $opt->{available};
+    my $assemblies    = $opt->{assemblies};
+    my $lineage       = $opt->{lineage};
+    
     ## set defaults for search
-    $type //= 'fasta';
-    $alphabet //= 'dna';
+    my $cpbase_response = "CpBase_database_response.html"; # HTML
+    $format //= 'fasta';
+    
+    _get_lineage_for_taxon($available, $cpbase_response) and exit(0) if $available && !$db;
 
-    get_lineage_for_taxon($cpbase_response, $available) and exit(0) if $lineage;
+    if ($lineage) {
+	if ($db && $genus && $species) {
+	    my $taxonid = _fetch_taxonid($genus, $species);
+            if (defined $taxonid) {
+                my ($lineage, $order, $family) = _get_lineage_from_taxonid($taxonid);
+                say join "\t", $order, $family, $genus, $species if defined $order && defined $family;
+            }
+	}
+	else {
+	    say "\nERROR: 'genus' and 'species' and 'db' are required for getting the taxonomic lineage";
+	}
+    }
 
     if ($statistics) {
-	if ($db || $gene_clusters || $rna_clusters || $assemblies || $alignments || $sequences) {
-	    say "\nERROR: The 'stats' option only works when given a genus and species name and no other options.";
-	    usage();
+	if (!$genus || !$species) {
+	    say "\nERROR: The 'statistics' option only works when given a genus and species name and no other options.";
 	    exit(1);
 	}
     }
 
-    ##This is a reminder for the TODO below; just say this option isn't implemented and exit
-    if ($alignments && !$gene_name || !$gene_clusters) {
-    say "ERROR: Currently only alignments for a specific gene cluster or gene name ".
-	"may be returned. Exiting.";
-    exit(1);
-    }
-
-    ##TODO add handling of option for getting all alignments
-    if ($gene_clusters && $gene_name && $alignments) {
-	my $gene_stats = fetch_ortholog_sets($gene_name, $alignments, $alphabet, $type);
-	say join "\t", "Gene","Genome","Locus","Product";
-	for my $gene (keys %$gene_stats) {
-	    for my $genome (keys %{$gene_stats->{$gene}}) {
-		for my $locus (keys %{$gene_stats->{$gene}{$genome}}) {
-		    say join "\t", $gene, $genome, $locus, $gene_stats->{$gene}{$genome}{$locus};
-		}
-	    }
-	}
-	exit;
-    }
-
-    if ($rna_clusters && $gene_name) {
-	fetch_rna_clusters($statistics, $sequences, $gene_name, $all);
-	exit;
-    }
-
-    if (!$db) {
-	say "\nERROR: A database to query must be given for getting stats or assemblies. ".
+    if ((!$db && $assemblies) || (!$db && $statistics)) {
+	say "\nERROR: A database to query must be given for getting 'statistics' or 'assemblies'. ".
 	    "Or, other arguments may be supplied. Exiting.";
-	usage();
 	exit(1);
     }
-
-    if (!$genus && $species) {
-	say "\nERROR: Can not query a species without a genus. Exiting.";
-	usage();
+    
+    if ((!$genus && $species) || ($genus && !$species)) {
+	say "\nERROR: Can not query a species without a genus and species name. Exiting.";
 	exit(1);
     }
-
+    
     # make epithet
     my $epithet;
     $epithet = $genus."_".$species if $genus && $species;
     my %stats;
-
+    
     # counters
     my $t0 = gettimeofday();
     my $records = 0;
     my $genomes;
 
-    # 
-    # Set the CpBase database to search and type
-    #
+    # set the CpBase database to search and type
     given ($db) {
 	when (/algae/i) {             $db = "Algae"; }
 	when (/red lineage/i) {       $db = "Red_Lineage"; }
@@ -133,7 +134,7 @@ sub check_args {
     say $out $response->content;
     close $out;
 
-    my $id_map = get_species_id($urlbase);
+    my $id_map = _get_species_id($urlbase);
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
     $te->parse_file($cpbase_response);
@@ -147,32 +148,32 @@ sub check_args {
 		say "$genomes $db genomes available in CpBase." and exit if $available;
 	    }
 	    else {
-		say "\nERROR: Be advised, this command will now attempt to download $genomes assemblies. ".
+		say "\nERROR: Be advised, this command would attempt to download $genomes assemblies. ".
 		    "It would be nicer to specify one species. Exiting now.\n" and exit if $assemblies && $all;
-		my ($organism,$locus,$sequence_length,$assembled,$annotated,$added) = @elem;
+		my ($organism, $locus, $sequence_length, $assembled, $annotated, $added) = @elem;
 		$organism =~ s/\s+/_/g;
 		
 		if (exists $id_map->{$organism}) {
 		    if ($genus && $species && $organism =~ /\Q$epithet\E/i) {
 			my $id = $id_map->{$organism};
-			my $assem_stats = get_cp_data($id);
+			my $assem_stats = _get_cp_data($id);
 			$stats{$organism} = $assem_stats;
 			my $file = $organism."_".$locus;
 			my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/$locus/files/$file";
 			
-			if ($type eq 'genbank') {
+			if ($format eq 'genbank') {
 			    $file = $file.".gb";
 			    $endpoint = $endpoint.".gb";
 			}
-			elsif ($type eq 'fasta') {
+			elsif ($format eq 'fasta') {
 			    $file = $file.".fasta";
 			    $endpoint = $endpoint.".fasta";
 			}
-			fetch_file($file, $endpoint) if $assemblies;
+			_fetch_file($file, $endpoint) if $assemblies;
 		    }
 		    elsif ($genus && $organism =~ /\Q$genus\E/i) {
 			my $id = $id_map->{$organism};
-			my $assem_stats = get_cp_data($id);
+			my $assem_stats = _get_cp_data($id);
 			$stats{$organism} = $assem_stats;
 		    }
 		}
@@ -191,7 +192,7 @@ sub check_args {
     unlink $cpbase_response;
 }
 
-sub get_species_id {
+sub _get_species_id {
     my ($urlbase) = @_;
 
     my %id_map;
@@ -211,7 +212,7 @@ sub get_species_id {
     return \%id_map;
 }
 
-sub get_cp_data {
+sub _get_cp_data {
     my ($id) = @_;
     
     my %assem_stats;
@@ -275,8 +276,8 @@ sub get_cp_data {
     return \%assem_stats;
 }
 
-sub fetch_ortholog_sets {
-    my ($gene_name, $alignments, $alphabet, $type) = @_;
+sub _fetch_ortholog_sets {
+    my ($all, $genus, $species, $gene_name, $alignments, $alphabet, $type) = @_;
     my %gene_stats;
     my $mech = WWW::Mechanize->new;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=u_feature_index"; 
@@ -313,40 +314,40 @@ sub fetch_ortholog_sets {
 
 			if ($alignments && $all) {
 			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    fetch_file($file, $endpoint);
+			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
+			    _fetch_file($file, $endpoint);
 			    unlink $cpbase_response;
 			}
 			elsif ($alignments && 
-			              defined $genus && 
-			              $genus =~ /$g/ && 
-			              defined $species && 
+			       defined $genus && 
+			       $genus =~ /$g/ && 
+			       defined $species && 
 			       $species =~ /$sp/) {
 			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    fetch_file($file, $endpoint);
+			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
+			    _fetch_file($file, $endpoint);
 			    unlink $cpbase_response;
 			}
 			elsif ($alignments && 
-			              defined $genus && 
-			              $genus =~ /$g/ && 
-			              defined $species && 
-			              $species =~ /$sp/ && 
-			              defined $gene_name && 
+			       defined $genus && 
+			       $genus =~ /$g/ && 
+			       defined $species && 
+			       $species =~ /$sp/ && 
+			       defined $gene_name && 
 			       $gene_name =~ /$elem[0]/) {
 			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    fetch_file($file, $endpoint);
+			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
+			    _fetch_file($file, $endpoint);
 			    unlink $cpbase_response;
 			}
 			elsif ($alignments && 
-			              !defined $genus && 
-			              !defined $species && 
-			              defined $gene_name && 
+			       !defined $genus && 
+			       !defined $species && 
+			       defined $gene_name && 
 			       $gene_name =~ /$elem[1]/) {
 			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    fetch_file($file, $endpoint);
+			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
+			    _fetch_file($file, $endpoint);
 			    unlink $cpbase_response;
 			}
 			else { 
@@ -361,7 +362,7 @@ sub fetch_ortholog_sets {
     return \%gene_stats;
 }
 
-sub make_alignment_url_from_gene {
+sub _make_alignment_url_from_gene {
     my ($gene, $alphabet, $type) = @_;
 
     my $file = $gene."_orthologs";
@@ -389,8 +390,8 @@ sub make_alignment_url_from_gene {
     return ($file, $endpoint)
 }
 
-sub fetch_rna_clusters {
-    my ($statistics, $sequences, $gene_name, $all) = @_;
+sub _fetch_rna_clusters {
+    my ($alignments, $type, $statistics, $sequences, $gene_name, $all, $cpbase_response) = @_;
     my $rna_cluster_stats;
     my %rna_cluster_links;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=rna_cluster_index";
@@ -459,13 +460,13 @@ sub fetch_rna_clusters {
     elsif ($sequences && $all) {
 	my $file = $gene."_orthologs.nt.fasta";
 	my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	fetch_file($file, $endpoint);
+	_fetch_file($file, $endpoint);
     }
     elsif ($sequences && $gene_name) {
 	if ($gene_name eq $gene) {
 	    my $file = $gene."_orthologs.nt.fasta";
 	    my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	    fetch_file($file, $endpoint);
+	    _fetch_file($file, $endpoint);
 	}
     }
     elsif ($alignments && $all) {
@@ -475,7 +476,7 @@ sub fetch_rna_clusters {
 	$suf = "fa" if $type =~ /fa/i;
 	$file .= $suf;
 	my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	fetch_file($file, $endpoint);
+	_fetch_file($file, $endpoint);
     }
     elsif ($alignments && $gene_name) {
 	if ($gene_name eq $gene) {
@@ -485,7 +486,7 @@ sub fetch_rna_clusters {
 	    $suf = "fa" if $type =~ /fa/i;
 	    $file .= $suf;
 	    my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	    fetch_file($file, $endpoint);
+	    _fetch_file($file, $endpoint);
 	}
     }
     unlink $cpbase_response;
@@ -495,8 +496,8 @@ sub fetch_rna_clusters {
     #return \%rna_cluster_stats;
 }
 
-sub get_lineage_for_taxon {
-    my ($cpbase_response, $available) = @_;
+sub _get_lineage_for_taxon {
+    my ($available, $cpbase_response,) = @_;
 
     my %taxa;
     my $ua = LWP::UserAgent->new;
@@ -519,7 +520,7 @@ sub get_lineage_for_taxon {
 	    my @elem = grep { defined } @$row;
 	    if ($available) {
 		if ($elem[0] =~ /(\d+) Genomes/i) {
-		    $genomes = $1;
+		    my $genomes = $1;
 		    unlink $cpbase_response;
 		    say "$genomes genomes available in CpBase." and exit(0);
 		}
@@ -528,9 +529,9 @@ sub get_lineage_for_taxon {
 	    my ($genus, $species) = split /\s+/, $organism;
 	    next unless defined $species && length($species) > 3;
 	    next if $species eq 'hybrid';
-	    my $taxonid = fetch_taxonid($genus, $species);
+	    my $taxonid = _fetch_taxonid($genus, $species);
 	    if (defined $taxonid) {
-		my ($lineage, $order, $family) = get_lineage_from_taxonid($taxonid);
+		my ($lineage, $order, $family) = _get_lineage_from_taxonid($taxonid);
 		say join "\t", $order, $family, $genus, $species if defined $order && defined $family;
 	    } 
 	}
@@ -539,7 +540,7 @@ sub get_lineage_for_taxon {
     exit;
 }
 
-sub get_lineage_from_taxonid {
+sub _get_lineage_from_taxonid {
     my ($id) = @_;
     my $esumm = "esumm_$id.xml"; 
  
@@ -569,7 +570,6 @@ sub get_lineage_from_taxonid {
 	    ($order)  = map  { s/\;$//; $_; }
 	                grep { /(\w+ales)/ }
 	                map  { split /\s+/  } $lineage;
-
 	}
 	else {
 	    ## need method to get order/family from non-viridiplantae
@@ -581,7 +581,7 @@ sub get_lineage_from_taxonid {
     return ($lineage, $order, $family);
 }
 
-sub fetch_taxonid {
+sub _fetch_taxonid {
     my ($genus, $species) = @_;
 
     my $esearch = "esearch_$genus"."_"."$species.xml";
@@ -610,17 +610,22 @@ sub fetch_taxonid {
     return $id;
 }
 
-sub fetch_file {
+sub _fetch_file {
     my ($file, $endpoint) = @_;
 
+    my $ua = LWP::UserAgent->new;
     unless (-e $file) {
-	my $exit_code;
-	try {
-	    $exit_code = system([0..5], "wget -O $file $endpoint");
+	my $response = $ua->get($endpoint);
+	
+	# check for a response
+	unless ($response->is_success) {
+	    die "Can't get url $endpoint -- ", $response->status_line;
 	}
-	catch {
-	    say "\nERROR: wget exited abnormally with exit code: $exit_code. Here is the exception: $_\n";
-	};
+
+	# open and parse the results
+	open my $out, '>', $file or die "\nERROR: Could not open file: $!\n";
+	say $out $response->content;
+	close $out;
     }
 }
 
