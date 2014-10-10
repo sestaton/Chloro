@@ -4,14 +4,14 @@ use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use IPC::System::Simple qw(system capture);
-use Test::More tests => 20;
-use Data::Dump qw(dd);
+use Test::More tests => 21;
 
 my @menu = capture([0..5], "bin/chloro help cpbase");
 
 my $opts   = 0;
 my $expnum = 0;
-my $sunfl_cp_genome = 'Helianthus_annuus_NC_007977.fasta';
+my $sunfl_fa_genome = 'Helianthus_annuus_NC_007977.fasta';
+my $sunfl_gb_genome = 'Helianthus_annuus_NC_007977.gb';
 
 for my $opt (@menu) {
     next if $opt =~ /^chloro|^ *$/;
@@ -77,16 +77,20 @@ for my $sun_stat (@sunfl_stats) {
     }
 }
 
-my @sunfl_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae");
-ok( -e $sunfl_cp_genome, 'Can fetch genomes from CpBase' );
-unlink $sunfl_cp_genome;
+my @sunfl_fa_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae");
+ok( -e $sunfl_fa_genome, 'Can fetch Fasta-formatted genomes from CpBase' );
+unlink $sunfl_fa_genome;
+
+my @sunfl_gb_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae -f genbank");
+ok( -e $sunfl_gb_genome, 'Can fetch Genbank-formatted genomes from CpBase' );
+unlink $sunfl_gb_genome;
 
 my @sunfl_lineage = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus -l -d viridiplantae");
 
 my ($order, $fam, $gen, $sp) = map { split /\t/ } @sunfl_lineage;
-like( $order, qr/Asterales/, 'Correct order returned for sunflower' );
-like( $fam,   qr/Asteraceae/, 'Correct family returned for sunflower' );
-like( $gen,   qr/helianthus/, 'Correct genus returned for sunflower' );
+like( $order, qr/Asterales/,  'Correct order returned for sunflower'   );
+like( $fam,   qr/Asteraceae/, 'Correct family returned for sunflower'  );
+like( $gen,   qr/helianthus/, 'Correct genus returned for sunflower'   );
 like( $sp,    qr/annuus/,     'Correct species returned for sunflower' );
 
 done_testing();
