@@ -6,8 +6,13 @@ use strict;
 use warnings;
 use Chloro -command;
 use IPC::System::Simple qw(system);
-use LWP::UserAgent;
+use Time::HiRes qw(gettimeofday);
+use Parallel::ForkManager;
 use File::Basename;
+use File::Spec;
+use File::Temp;
+use Try::Tiny;
+use Cwd;
 
 sub opt_spec {
     return (    
@@ -38,17 +43,16 @@ sub execute {
     my ($self, $opt, $args) = @_;
 
     exit(0) if $self->app->global_options->{man};
-    my $result = _run_screening($opt);
+    my $blastfile = _run_screening($opt);
+    my $result    = _filter_hits($opt, $blastfile);
 }
 
 sub _run_screening {
     my ($opt) = @_;
     my $t0       = gettimeofday();
     my $infile   = $opt->{infile};
-    my $outfile  = $opt->{outfile};
     my $database = $opt->{database};
-    my $length   = $opt->{length};
-    my $thread   = $opt->{thread};
+    my $thread   = $opt->{threads};
     my $cpu      = $opt->{cpu};
     my $seqnum   = $opt->{seqnum};
 
@@ -56,11 +60,13 @@ sub _run_screening {
     $cpu //= 1;  
     $thread //= 1;
     
-    my ($dbfile, $dbdir, $dbext)  = fileparse($database, qr/\.[^.]*/);
-    my ($db_path)           = _make_blastdb($database, $dbfile, $dbdir);
-    my ($seq_files, $seqct) = _split_reads($infile, $outfile, $seqnum);
+    my ($dbfile, $dbdir, $dbext) = fileparse($database, qr/\.[^.]*/);
+    my ($file, $dir, $ext) = fileparse($infile, qr/\.[^.]*/);
+    my ($db_path) = _make_blastdb($database, $dbfile, $dbdir);
+    my ($seq_files, $seqct) = _split_reads($infile, $seqnum);
+    my $blastfile = $file."_".$dbfile.".bln";
 
-    open my $out, '>>', $outfile or die "\nERROR: Could not open file: $outfile\n"; 
+    open my $out, '>>', $blastfile or die "\nERROR: Could not open file: $blastfile\n"; 
 
     my $pm = Parallel::ForkManager->new($thread);
     $pm->run_on_finish( sub { my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_ref) = @_;
@@ -94,7 +100,9 @@ sub _run_screening {
     my $total_elapsed = $t2 - $t0;
     my $final_time = sprintf("%.2f",$total_elapsed/60);
 
-    say "\n========> Finihsed running BLAST on $seqct sequences in $final_time minutes";
+    unlink glob("$db_path*");
+    #say "\n========> Finihsed running BLAST on $seqct sequences in $final_time minutes";
+    return $blastfile;
 }
 
 sub _run_blast {
@@ -120,7 +128,7 @@ sub _run_blast {
 	$exit_value = system([0..5], @blast_cmd);
     }
     catch {
-	"\nERROR: BLAST exited with exit value $exit_value. Here is the exception: $_\n";
+	die "\nERROR: BLAST exited with exit value $exit_value. Here is the exception: $_\n";
     };
 
     return $subseq_out;
@@ -139,14 +147,14 @@ sub _make_blastdb {
 	$exit_value = system([0..5], "formatdb -p F -i $database -t $db -n $db_path 2>&1 > /dev/null");
     }
     catch {
-	"\nERROR: formatdb exited with exit value $exit_value. Here is the exception: $_\n";
+	die "\nERROR: formatdb exited with exit value $exit_value. Here is the exception: $_\n";
     };
     
     return $db_path;
 }
 
 sub _split_reads {
-    my ($infile, $outfile, $seqnum) = @_;
+    my ($infile, $seqnum) = @_;
 
     my ($iname, $ipath, $isuffix) = fileparse($infile, qr/\.[^.]*/);
     
@@ -154,7 +162,7 @@ sub _split_reads {
     my $count = 0;
     my $fcount = 1;
     my @split_files;
-    $iname =~ s/\.fa.*//;     # clean up file name like seqs.fasta.1
+    $iname =~ s/\.fa.*//;
     
     my $cwd = getcwd();
 
@@ -187,6 +195,55 @@ sub _split_reads {
     close $in; 
     close $out;
     return (\@split_files, $count);
+}
+
+sub _filter_hits {
+    my ($opt, $blastfile) = @_;
+    my $infile  = $opt->{infile};
+    my $length  = $opt->{length};
+    my $outfile = $opt->{outfile};
+
+    $length //= 50;
+    open my $in, '<', $blastfile or die "\nERROR: Could not open file: $!";
+    my $fas = _get_fh($infile);
+    open my $out, '>', $outfile or die "\nERROR: Could not open file: $!";
+    
+    my %match_range;
+    
+    while (my $l = <$in>) {
+	chomp $l;
+	my @f = split "\t", $l;
+	if (@f) { # check for blank lines in input
+	    next if exists $match_range{$f[0]};
+	    $match_range{$f[0]} = join "|", $f[6], $f[7];
+	}
+    }
+    close $in;
+    
+    my ($scrSeqCt, $validscrSeqCt) = (0, 0);
+    
+    my @aux = undef;
+    my ($name, $comm, $seq, $qual);
+    while (($name, $comm, $seq, $qual) = _readfq(\*$fas, \@aux)) {
+	$scrSeqCt++ if defined $seq;
+	if (exists $match_range{$name}) {
+	    my ($match_start, $match_end) = split /\|/, $match_range{$name};
+	    if (defined $match_start && defined $match_end) {
+		my $match_length = $match_end - $match_start;
+		if ($match_length >= $length) {
+		    $validscrSeqCt++;
+		    my $seq_match = substr $seq, $match_start, $match_length;
+		    say $out join "\n", ">".$name, $seq_match;
+		}
+	    }
+	}
+    }
+    close $fas;
+    close $out;
+    
+    say "$scrSeqCt total sequences matched the target.";
+    say "$validscrSeqCt were above the length threshold and were written to $outfile.";
+    unlink $blastfile;
 }
 
 sub _readfq {
