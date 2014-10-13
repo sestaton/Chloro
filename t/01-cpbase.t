@@ -4,6 +4,8 @@ use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use IPC::System::Simple qw(system capture);
+use File::Spec;
+use File::Copy qw(move);
 use Test::More tests => 21;
 
 my @menu = capture([0..5], "bin/chloro help cpbase");
@@ -79,7 +81,8 @@ for my $sun_stat (@sunfl_stats) {
 
 my @sunfl_fa_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae");
 ok( -e $sunfl_fa_genome, 'Can fetch Fasta-formatted genomes from CpBase' );
-unlink $sunfl_fa_genome;
+move($sunfl_fa_genome, "t/test_data");
+#unlink $sunfl_fa_genome;
 
 my @sunfl_gb_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae -f genbank");
 ok( -e $sunfl_gb_genome, 'Can fetch Genbank-formatted genomes from CpBase' );
