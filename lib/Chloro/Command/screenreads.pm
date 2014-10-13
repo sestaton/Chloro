@@ -12,7 +12,7 @@ use File::Basename;
 use File::Spec;
 use File::Temp;
 use Try::Tiny;
-use Cwd;
+use Cwd qw(abs_path getcwd);;
 
 sub opt_spec {
     return (    
@@ -23,7 +23,7 @@ sub opt_spec {
 	[ "threads|t=i",  "Number of threads to create (Default: 1)."                                       ],
 	[ "cpu|a=i",      "Number of processors to use for each thread (Default: 1)."                       ],
 	[ "seqnum|n=i",   "The number of sequences to process with each thread."                            ],  
-   );
+    );
 }
 
 sub validate_args {
@@ -44,7 +44,8 @@ sub execute {
 
     exit(0) if $self->app->global_options->{man};
     my $blastfile = _run_screening($opt);
-    my $result    = _filter_hits($opt, $blastfile);
+    my $scr_reads = _filter_hits($opt, $blastfile);
+    my $result    = _repair_reads($scr_reads);
 }
 
 sub _run_screening {
@@ -55,6 +56,11 @@ sub _run_screening {
     my $thread   = $opt->{threads};
     my $cpu      = $opt->{cpu};
     my $seqnum   = $opt->{seqnum};
+
+    unless (-e $infile && -e $database) {
+	say "\nERROR: Missing input files. Check that the input and database exist. Exiting.\n";
+	exit(1);
+    }
 
     my %blasts;
     $cpu //= 1;  
@@ -116,7 +122,7 @@ sub _run_blast {
     my (@blast_cmd, $exit_value);
     @blast_cmd = "blastall ". 
                  "-p blastn ".
-		 "-e 1e-5 ". 
+		 #"-e 1e-5 ". 
 		 "-F F ".
 		 "-i $subseq_file ".
 		 "-d $db_path ".
@@ -141,6 +147,7 @@ sub _make_blastdb {
     my $db      = $dbfile."_chloro_blastdb";
     my $db_path = File::Spec->catfile($dbdir, $db);
     unlink $db_path if -e $db_path;
+    my $format_log = 'formatdb.log';
 
     my $exit_value;
     try {
@@ -150,6 +157,7 @@ sub _make_blastdb {
 	die "\nERROR: formatdb exited with exit value $exit_value. Here is the exception: $_\n";
     };
     
+    unlink $format_log if -e $format_log;
     return $db_path;
 }
 
@@ -244,6 +252,88 @@ sub _filter_hits {
     say "$scrSeqCt total sequences matched the target.";
     say "$validscrSeqCt were above the length threshold and were written to $outfile.";
     unlink $blastfile;
+    return $outfile;
+}
+
+sub _repair_reads {
+    my ($scr_reads) = @_;
+
+    my $file = __FILE__;
+    my $cmd_dir = basename(dirname(abs_path($file)));
+    my $hmm_dir = basename(dirname($cmd_dir));
+    my $chl_dir = basename(dirname($hmm_dir));
+    my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'scripts', 'pairfq_lite.pl');
+    my ($sname, $spath, $ssuffix) = fileparse($scr_reads, qr/\.[^.]*/);
+
+    my $ffile  = File::Spec->catfile($spath, $sname."_f".$ssuffix);
+    my $rfile  = File::Spec->catfile($spath, $sname."_r".$ssuffix);
+    my $fpfile = File::Spec->catfile($spath, $sname."_fp".$ssuffix);
+    my $rpfile = File::Spec->catfile($spath, $sname."_rp".$ssuffix);
+    my $fsfile = File::Spec->catfile($spath, $sname."_fs".$ssuffix);
+    my $rsfile = File::Spec->catfile($spath, $sname."_rs".$ssuffix);
+    my $ifile  = File::Spec->catfile($spath, $sname."_paired_interl".$ssuffix);
+    my $sfile  = File::Spec->catfile($spath, $sname."_unpaired".$ssuffix);
+
+    my @split_pairs = "$pairfq splitpairs ".
+	              "-i $scr_reads ".
+	              "-f $ffile ".
+		      "-r $rfile";
+    my $exit_value;
+    try {
+	$exit_value = system([0..5], @split_pairs);
+    }
+    catch {
+	die "\nERROR: 'pairfq splitpairs' exited with exit value $exit_value. Here is the exception: $_\n";
+    };
+
+    my @make_pairs = "$pairfq makepairs ".
+                      "-f $ffile ".
+                      "-r $rfile ".
+		      "-fp $fpfile ".
+		      "-rp $rpfile ".
+		      "-fs $fsfile ".
+		      "-rs $rsfile";
+
+    undef $exit_value;
+    try {
+        $exit_value = system([0..5], @make_pairs);
+    }
+    catch {
+        die "\nERROR: 'pairfq makepairs' exited with exit value $exit_value. Here is the exception: $_\n";
+    };
+    
+    my @join_pairs = "$pairfq joinpairs ".
+                      "-f $fpfile ".
+                      "-r $rpfile ".
+		      "-o $ifile";
+
+    undef $exit_value;
+    try {
+        $exit_value = system([0..5], @join_pairs);
+    }
+    catch {
+        die "\nERROR: 'pairfq joinpairs' exited with exit value $exit_value. Here is the exception: $_\n";
+    };
+
+    open my $s_out, '>>', $sfile or die "\nERROR: Could not open file: $sfile\n";
+
+    for my $singles ($fsfile, $rsfile) {
+	open my $s, '<', $singles or die "\nERROR: Could not open file: $singles\n";
+	while (my $l = <$s>) {
+	    print $s_out $l;
+	}
+	close $s;
+    }
+    close $s_out;
+
+    unlink $ffile;
+    unlink $rfile;
+    unlink $fpfile;
+    unlink $rpfile;
+    unlink $fsfile;
+    unlink $rsfile;
+
+    return $exit_value;
 }
 
 sub _readfq {
@@ -318,7 +408,7 @@ __END__
 
 =head1 NAME 
                                                                        
-chloro screenreads - Run multiple BLAST threads concurrently
+chloro screenreads - screen a set of NGS reads against a chlorplast refence and retain the aligned regions
 
 =head1 SYNOPSIS    
  
@@ -326,10 +416,11 @@ chloro screenreads -i seqs.fas -o seqs_nt.bln -t 2 -n 100000 -cpu 2
 
 =head1 DESCRIPTION
      
-This script can accelerate BLAST searches by splitting an input file and 
+This script can accelerate screening reads by splitting an input file and 
 running BLAST on multiple subsets of sequences concurrently. The size of 
 the splits to make and the number of threads to create are optional. The 
-input set of sequences may be in fasta or fastq format.                                                                
+input set of sequences may be in fasta or fastq format, and the files may
+be compressed with gzip or bzip2.                                                                
 
 =head1 DEPENDENCIES
 
