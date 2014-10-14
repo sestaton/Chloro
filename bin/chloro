@@ -3,7 +3,7 @@
 use 5.010;
 use strict;
 use warnings;
-use lib qw(../blib/lib);
+use lib qw(blib/lib);
 use Chloro;
 
 our $VERSION = '0.01';
@@ -14,13 +14,13 @@ __END__
 
 =head1 NAME
 
-Chloro - 
+Chloro - Automated chloroplast genome assembly
 
 =head1 SYNOPSIS    
 
 =head1 DESCRIPTION
      
-(...)
+This application will assist the process of creating a screening database of chloroplast genomes, then it will allow the screening of NGS reads against this database. Paired-end reads will be correctly paired and the screened reads will be assembled.
 
 =head1 DEPENDENCIES
 
@@ -39,7 +39,7 @@ Copyright (C) 2014 S. Evan Staton
 =over
 
 =item *
-Perl 5.20.1 (Red Hat Enterprise Linux Server release 5.9 (Tikanga))
+Perl 5.20.1 (Red Hat Enterprise Linux Server release 5.9 (Tikanga); Mac OS X 10.6.8)
 
 =back
 
@@ -53,6 +53,9 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =item The method to perform. Must be one of the following:
 
+     assemble: Run many chloroplast genome assemblies and pick the best one.
+       cpbase: Download chloroplast genes or genomes from CpBase.
+  screenreads: Extract chloroplast regions from a read set.
 
 =back
 
