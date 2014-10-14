@@ -6,7 +6,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq blast2 libdb-dev libdb++-dev libxml2-dev zlib1g-dev
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
-  - source ~/travis-perl-helpers/init --auto 
+  - source ~/travis-perl-helpers/init
   - cpanm -n BioPerl
   - ./install_deps.sh
 
