@@ -9,7 +9,7 @@ perl:
 
 before_install: 
   - sudo apt-get update -qq
-  - sudo apt-get install -qq blast2
+  - sudo apt-get install -qq blast2 libdb-dev libdb++-dev
   - ./install_deps.sh
 
 script: perl Makefile.PL && make && make test
