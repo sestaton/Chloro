@@ -15,7 +15,7 @@ before_install:
 
 script: perl Makefile.PL && make && prove -bv t/03-assemble.t
 
-after_failure: ls -l /home/travis/build/sestaton/Chloro
+after_failure: cd /home/travis/build/sestaton/Chloro && ./bin/chloro assemble -p t/test_data/t_cpseqs_screened_paired_interl.fas -s t/test_data/t_cpseqs_screened_unpaired.fas -i 59 -j 59
 
 branches:
   only:
