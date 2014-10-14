@@ -35,11 +35,11 @@ The main application (called `chloro`) is in the 'bin' directory, and the usage 
 
 For the sake of example, we will assume that we have read data from a sunflower species, so we would start with fetching a reference from a closely related species, in this case that is *Helianthus annuus*.
 
-**Create a database of chloroplast genome(s) to screen reads against**
+**1. Create a database of chloroplast genome(s)**
 
     ./bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae
 
-**Screen the reads against the reference database**
+**2. Screen the reads against the reference database**
 
     ./bin/chloro screenreads -i data/s_1_reads.fq.gz -o data/s_1_reads_screened.fasta -d Helianthus_annuus_NC_007977.fasta -n 100000 -l 50 -t 12
 
@@ -47,7 +47,7 @@ In the above command, the file 'Helianthus_annuus_NC_007977.fasta' was created b
 
 The `-n 100000` indicates that we want to process 100,000 reads in each thread, the `-l 50` means to only keep regions over 50bp that match the reference, and the `-t 12` indicates that we want to use 12 threads for the screening. This latter option will greatly accelerate the search, but you would not want to set the thread number higher than the number of CPUs you have available.
 
-**Assemble the screened reads**
+**3. Assemble the screened reads**
 
     ./bin/chloro assemble -p data/s_1_reads_screened_paired_interl.fasta -s data/s_1_screened_unpaired.fasta -i 59 -j 89
 
