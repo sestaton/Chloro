@@ -262,7 +262,7 @@ sub _repair_reads {
     my $cmd_dir = basename(dirname(abs_path($file)));
     my $hmm_dir = basename(dirname($cmd_dir));
     my $chl_dir = basename(dirname($hmm_dir));
-    my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'scripts', 'pairfq_lite.pl');
+    my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'bin', 'pairfq_lite.pl');
     my ($sname, $spath, $ssuffix) = fileparse($scr_reads, qr/\.[^.]*/);
 
     my $ffile  = File::Spec->catfile($spath, $sname."_f".$ssuffix);
