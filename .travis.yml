@@ -13,9 +13,9 @@ before_install:
   - cpanm -n BioPerl
   - ./install_deps.sh
 
-script: perl Makefile.PL && make && prove -bv t/03-assemble.t && ls -l
+script: perl Makefile.PL && make && prove -bv t/03-assemble.t
 
-after_failure: cat /home/travis/.cpanm/build.log
+after_failure: ls -l /home/travis/build/sestaton/Chloro
 
 branches:
   only:
