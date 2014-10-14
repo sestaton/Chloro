@@ -75,6 +75,7 @@ sub _run_assembly {
 
     my ($stdout, $stderr, @res) = capture { system([0..5], @vo_cmd); };
 
+    say "\nERROR: VelvetOptimiser seems to have exited. Here is the message: $stderr" if $stderr;
     #try {
     #    $exit_value = capture([0..5], @vo_cmd);
     #}
