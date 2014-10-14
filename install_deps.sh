@@ -17,6 +17,6 @@ mv sestaton-VelvetOptimiser* VelvetOptimiser
 cd ..
 
 ## Pairfq-lite
-cd scripts
+cd bin
 wget --no-check-certificate https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
 chmod +x pairfq_lite.pl
