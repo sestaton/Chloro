@@ -74,6 +74,6 @@ is( $scount, 44, 'Correct number of unpaired reads written to singletons file' )
 is( $icount, 8778, 'Correct number of paired reads written to pair file' );
 
 unlink $outfile;
-unlink $database;
+#unlink $database;
 
 done_testing();
