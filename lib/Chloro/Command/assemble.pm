@@ -65,7 +65,7 @@ sub _run_assembly {
     my ($ifile, $idir, $iext) = fileparse($pairfile, qr/\.[^.]*/);
     my $dirname = "VelvetOpt_k$hashs-k$hashe";
 
-    my @vo_cmd = "$vo ".
+    my @vo_cmd = "perl $vo ".
 	         "-s $hashs ".
 		 "-e $hashe ".
 		 "-t $thread ".
