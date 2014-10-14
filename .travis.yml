@@ -10,6 +10,8 @@ perl:
 before_install: 
   - sudo apt-get update -qq
   - sudo apt-get install -qq blast2 libdb-dev libdb++-dev libxml2-dev zlib1g-dev
+  - perlbrew install 5.18.2 --as=5.18.2t -Dusethreads
+  - perlbrew switch 5.18.2t
   - cpanm -n BioPerl
   - ./install_deps.sh
 
