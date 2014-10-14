@@ -278,12 +278,12 @@ sub _repair_reads {
 	              "-i $scr_reads ".
 	              "-f $ffile ".
 		      "-r $rfile";
-    my $exit_value;
+
     try {
-	$exit_value = system([0..5], @split_pairs);
+	system([0..5], @split_pairs);
     }
     catch {
-	die "\nERROR: 'pairfq splitpairs' exited with exit value $exit_value. Here is the exception: $_\n";
+	die "\nERROR: 'pairfq splitpairs' exited abnormally. Here is the exception: $_\n";
     };
 
     my @make_pairs = "$pairfq makepairs ".
@@ -294,12 +294,11 @@ sub _repair_reads {
 		      "-fs $fsfile ".
 		      "-rs $rsfile";
 
-    undef $exit_value;
     try {
-        $exit_value = system([0..5], @make_pairs);
+        system([0..5], @make_pairs);
     }
     catch {
-        die "\nERROR: 'pairfq makepairs' exited with exit value $exit_value. Here is the exception: $_\n";
+        die "\nERROR: 'pairfq makepairs' exited abnormally. Here is the exception: $_\n";
     };
     
     my @join_pairs = "$pairfq joinpairs ".
@@ -307,12 +306,11 @@ sub _repair_reads {
                       "-r $rpfile ".
 		      "-o $ifile";
 
-    undef $exit_value;
     try {
-        $exit_value = system([0..5], @join_pairs);
+        system([0..5], @join_pairs);
     }
     catch {
-        die "\nERROR: 'pairfq joinpairs' exited with exit value $exit_value. Here is the exception: $_\n";
+        die "\nERROR: 'pairfq joinpairs' exited abnormally. Here is the exception: $_\n";
     };
 
     open my $s_out, '>>', $sfile or die "\nERROR: Could not open file: $sfile\n";
@@ -333,7 +331,7 @@ sub _repair_reads {
     unlink $fsfile;
     unlink $rsfile;
 
-    return $exit_value;
+    return;
 }
 
 sub _readfq {
