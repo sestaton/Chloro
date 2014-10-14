@@ -1,6 +1,6 @@
 language: perl
 perl:
-  - "5.20"
+  - "5.20-thr"
 #  - "5.18"
 #  - "5.16"
 #  - "5.14"
@@ -10,8 +10,10 @@ perl:
 before_install: 
   - sudo apt-get update -qq
   - sudo apt-get install -qq blast2 libdb-dev libdb++-dev libxml2-dev zlib1g-dev
-  - perlbrew install 5.18.2 --as=5.18.2t -Dusethreads
-  - perlbrew switch 5.18.2t
+#  - perlbrew install 5.18.2 --as=5.18.2t -Dusethreads
+#  - perlbrew switch 5.18.2t
+  - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
+  - source ~/travis-perl-helpers/init --auto 
   - cpanm -n BioPerl
   - ./install_deps.sh
 
