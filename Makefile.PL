@@ -39,6 +39,6 @@ WriteMakefile(
     INST_SCRIPT => 'bin',
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     test  => { TESTS => 't/*.t' },
-    clean => { FILES => ['scripts/pairfq_lite.pl', 'src'] },
+    clean => { FILES => ['bin/pairfq_lite.pl', 'src'] },
 );
 
