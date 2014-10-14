@@ -13,7 +13,7 @@ before_install:
   - cpanm -n BioPerl
   - ./install_deps.sh
 
-script: prove -bv t/03-assemble.t && ls -l
+script: perl Makefile.PL && make && prove -bv t/03-assemble.t && ls -l
 
 after_failure: cat /home/travis/.cpanm/build.log
 
