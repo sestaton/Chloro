@@ -1,25 +1,18 @@
 language: perl
 perl:
   - "5.20-thr"
-#  - "5.18"
-#  - "5.16"
-#  - "5.14"
-#  - "5.12"
-#  - "5.10"
 
 before_install: 
   - sudo apt-get update -qq
   - sudo apt-get install -qq blast2 libdb-dev libdb++-dev libxml2-dev zlib1g-dev
-#  - perlbrew install 5.18.2 --as=5.18.2t -Dusethreads
-#  - perlbrew switch 5.18.2t
   - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
   - source ~/travis-perl-helpers/init --auto 
   - cpanm -n BioPerl
   - ./install_deps.sh
 
-script: perl Makefile.PL && make && prove -bv t/03-assemble.t
+script: perl Makefile.PL && make && make test
 
-after_failure: perl /home/travis/build/sestaton/Chloro/src/VelvetOptimiser/VelvetOptimiser.pl -s 59 -e 59 -t 1 -p VelvetOpt_k59-k59 -d VelvetOpt_k59-59 -f '-fasta -shortPaired t/test_data/t_cpseqs_screened_paired_interl.fas -fasta -short t/test_data/t_cpseqs_screened_unpaired.fas'
+after_failure: cat /home/travis/.cpanm/build.log
 
 branches:
   only:
