@@ -95,8 +95,8 @@ ok( -s $graph2,   'Created velvet graph2' );
 ok( -s $stats,    'Created velvet stats' );
 ok( -s $contigs,  'Created velvet contigs from assembly' );
 
-#unlink $pairfile;
-#unlink $upairfile;
-#remove_tree($outdir);
+unlink $pairfile;
+unlink $upairfile;
+remove_tree($outdir);
 
 done_testing();

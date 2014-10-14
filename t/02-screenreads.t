@@ -15,8 +15,7 @@ my $tot      = 0;
 my $scr      = 0;
 my $seqnum   = 100000;
 my $outfile  = "t/test_data/t_cpseqs_screened.fas";
-my $infile = "t/test_data/t_reads.fq.bz2";
-#my $database = "t/test_data/t_cpdna_db.fas";
+my $infile   = "t/test_data/t_reads.fq.bz2";
 my $database = "t/test_data/Helianthus_annuus_NC_007977.fasta";
 
 for my $opt (@menu) {
@@ -74,6 +73,6 @@ is( $scount, 44, 'Correct number of unpaired reads written to singletons file' )
 is( $icount, 8778, 'Correct number of paired reads written to pair file' );
 
 unlink $outfile;
-#unlink $database;
+unlink $database;
 
 done_testing();
