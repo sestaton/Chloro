@@ -9,7 +9,7 @@ Automated chloroplast genome assembly
 
 **SPECIAL NOTE**
 
-This is a work in process, the documentation is incomplete and this has only been tested with Illumina data. Currently, only VelvetOptimiser is used for assembly, though more assembly methods will be added. Please report bugs or issues that you find. See below for more information on usage and reporting issues.
+This is a work in process, and has only been tested with Illumina data. Also, the documentation may be incomplete for some commands. Currently, only VelvetOptimiser is used for assembly, though more assembly methods will be added. Please report bugs or issues that you find. See below for more information on usage and reporting issues.
 
 **INSTALLATION**
 
@@ -43,7 +43,7 @@ For the sake of example, we will assume that we have read data from a sunflower 
 
     ./bin/chloro screenreads -i data/s_1_reads.fq.gz -o data/s_1_reads_screened.fasta -d Helianthus_annuus_NC_007977.fasta -n 100000 -l 50 -t 12
 
-In the above command, the file 'Helianthus_annuus_NC_007977.fasta' was created by step 1 and is the reference chloroplast genome for the species of interest. The file 's_1_reads.fq.gz' is just an example, this would be a file of WGS reads to screen. The input may be FASTA or FASTQ, and it may be compressed with gzip or bzip2.
+In the above command, the file 'Helianthus_annuus_NC_007977.fasta' was created by step 1 and is the reference chloroplast genome for the species of interest. The file 's_1_reads.fq.gz' is just an example, this would be a file of WGS reads to screen. The input may be FASTA or FASTQ, and it may be compressed with gzip or bzip2. There is no assumption about the order of reads, but it is assumed that the input contains paired-end data consisting of both forward and reverse reads in the same file.
 
 The `-n 100000` indicates that we want to process 100,000 reads in each thread, the `-l 50` means to only keep regions over 50bp that match the reference, and the `-t 12` indicates that we want to use 12 threads for the screening. This latter option will greatly accelerate the search, but you would not want to set the thread number higher than the number of CPUs you have available.
 
@@ -72,6 +72,10 @@ Report any issues at the Chloro issue tracker: https://github.com/sestaton/Chlor
 **ATTRIBUTION**
 
 This project uses the readfq library written by Heng Li. The readfq code has been modified for error handling and to parse the comment line in the Casava header.
+
+[Pairfq](https://github.com/sestaton/Pairfq) is used for pairing reads prior to assembly.
+
+A modified version of [VelvetOptimiser](https://github.com/Victorian-Bioinformatics-Consortium/VelvetOptimiser) is used for assembly. This code may be obtained from here: https://github.com/sestaton/VelvetOptimiser
 
 **LICENSE AND COPYRIGHT**
 
