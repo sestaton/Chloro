@@ -15,7 +15,7 @@ before_install:
 
 script: perl Makefile.PL && make && prove -bv t/03-assemble.t
 
-after_failure: ls -l /home/travis/build/sestaton/Chloro/src && ls -l /home/travis/build/sestaton/Chloro/src/VelvetOptimiser && ls -l /home/travis/build/sestaton/Chloro/src/velvet && ./home/travis/build/sestaton/Chloro/src/VelvetOptimiser/VelvetOptimiser.pl
+after_failure: perl /home/travis/build/sestaton/Chloro/src/VelvetOptimiser/VelvetOptimiser.pl -s 59 -e 59 -t 1 -p VelvetOpt_k59-k59 -d VelvetOpt_k59-59 -f '-fasta -shortPaired t/test_data/t_cpseqs_screened_paired_interl.fas -fasta -short t/test_data/t_cpseqs_screened_unpaired.fas'
 
 branches:
   only:
