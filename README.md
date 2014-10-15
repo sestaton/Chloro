@@ -15,18 +15,7 @@ This is a work in process, and has only been tested with Illumina data. Also, th
 
 **DEPENDENCIES**
 
-The main application is written in Perl, and one of the dependencies uses threads, so you must have a Perl compiled with thread support. This is quite easy to set up using [perlbrew](http://perlbrew.pl/):
-
-    \curl -L http://install.perlbrew.pl | bash
-    perlbrew install perl-5.20.1 -Dusethreads
-    perlbrew switch perl-5.20.1
-    perlbrew install-cpanm
-
-The last command installs [cpanminus](https://metacpan.org/pod/distribution/App-cpanminus/bin/cpanm), a friendly package manager for Perl. In order to sucessfully build all of the Perl dependencies we need to install a couple of C libraries. This can be with with MacPorts or Homebrew for Mac, or with your package manager on Linux. Below assumes Ubuntu:
-
-    sudo apt-get install -qq blast2 libdb-dev libdb++-dev libxml2-dev zlib1g-dev
-
-The first package installs the legacay BLAST package, the next two install Berkeley DB (required by BioPerl, a dependency of VelvetOptimiser), and the last two are required to build the Perl module XML::LibXML, which is used by Chloro for parsing XML.
+The main application is written in Perl, and you must have a Perl compiled with thread support. See the wiki page on [installing dependencies](https://github.com/sestaton/Chloro/wiki/Installing-dependencies) for testing and installing dependencies.
 
 **INSTALLATION**
 
@@ -45,13 +34,13 @@ make
 make test
 ```
 
-The main application (called `chloro`) is in the 'bin' directory, and the usage is described below. Note that the input read data may be placed anywhere, but it is suggested that the input data is placed in the 'data' directory so that all the results are kept together in a separate directory. 
+If one of these commands fails, it is best to run `make clean` and resolve the issue before proceeding. The main application (called `chloro`) is in the 'bin' directory, and the usage is described below. Note that the input read data may be placed anywhere, but it is suggested that the input data is placed in the 'data' directory so that all the results are kept together in a separate directory. 
  
 ------------------------------------------------------------------------------------------------------------------------------------
 
 **USAGE**
 
-For the sake of example, we will assume that we have read data from a sunflower species, so we would start with fetching a reference from a closely related species, in this case that is *Helianthus annuus*.
+For the sake of example, we will assume that we have read data from a sunflower species, so we would start with fetching a reference from a closely related species, in this case that is *Helianthus annuus*. Also, all execution is done in the `Chloro` directory with our read data in the 'data' directory.
 
 **1. Create a database of chloroplast genome(s)**
 
