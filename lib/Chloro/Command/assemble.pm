@@ -30,7 +30,7 @@ sub validate_args {
 	system([0..5], "perldoc $command");
     }
     else {
-	$self->usage_error("Too few arguments.") unless $opt->{pairfile};
+	$self->usage_error("Too few arguments.") unless $opt->{paired};
     }
 } 
 
@@ -44,8 +44,8 @@ sub execute {
 
 sub _run_assembly {
     my ($opt) = @_;
-    my $pairfile   = abs_path($opt->{pairfile});
-    my $singletons = abs_path($opt->{singletons}); 
+    my $pairfile   = abs_path($opt->{paired});
+    my $singletons = abs_path($opt->{unpaired}); 
     my $hashs      = $opt->{hashs};
     my $hashe      = $opt->{hashe};
     my $thread     = $opt->{threads};
