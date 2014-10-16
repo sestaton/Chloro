@@ -41,7 +41,7 @@ for my $res (@scr_results) {
 }
 
 is( $tot, 100000, 'Expected number of reads matching index' );
-is( $scr, 8822, 'Expected number of matches above length threshold' );
+is( $scr, 8822,   'Expected number of matches above length threshold' );
 
 my ($name, $path, $suffix) = fileparse($outfile, qr/\.[^.]*/);
 my $ffile  = File::Spec->catfile($path, $name."_f".$suffix);
@@ -69,7 +69,7 @@ while (<$i>) {
 }
 close $i;
 
-is( $scount, 44, 'Correct number of unpaired reads written to singletons file' );
+is( $scount, 44,   'Correct number of unpaired reads written to singletons file' );
 is( $icount, 8778, 'Correct number of paired reads written to pair file' );
 
 unlink $outfile;
