@@ -107,7 +107,7 @@ sub _run_screening {
     my $final_time = sprintf("%.2f",$total_elapsed/60);
 
     unlink glob("$db_path*");
-    #say "\n========> Finihsed running BLAST on $seqct sequences in $final_time minutes";
+    #say "\n========> Finished running BLAST on $seqct sequences in $final_time minutes";
     return $blastfile;
 }
 
