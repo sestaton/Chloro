@@ -17,15 +17,15 @@ no if $] >= 5.018, 'warnings', "experimental::smartmatch";
 
 sub opt_spec {
     return (
-	[ "all",        "Download files of the specified type for all species in the database." ],
-	[ "available",  "Print the number of species available in CpBase and exit." ],
-	[ "db|d=s",   "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
-        [ "format|f=s", "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
+	[ "all",         "Download files of the specified type for all species in the database." ],
+	[ "available",   "Print the number of species available in CpBase and exit." ],
+	[ "db|d=s",      "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
+        [ "format|f=s",  "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
         [ "genus|g=s",   "The name of a genus query." ],
 	[ "species|s=s", "The name of a species to query." ],
         [ "statistics",  "Get assembly statistics for the specified species." ],
 	[ "assemblies",  "Specifies that the chlorplast genome assemblies should be fetched." ],
-        [ "lineage|l", "Return the order, family, genus and species (tab separated) of all entries." ],
+        [ "lineage|l",   "Return the order, family, genus and species (tab separated) of all entries." ],
 	[ "outfile|o=s", "A file to log the results of each search" ],
     );
 }
@@ -636,32 +636,64 @@ __END__
 
 =head1 NAME
                                                                        
- chloro cpbase - 
+ chloro cpbase_search - Download chloroplast genes or genomes from CpBase
 
 =head1 SYNOPSIS    
 
- chloro cpbase - 
+ chloro cpbase_search -g helianthus -s annuus -d viridiplantae --assemblies
 
 =head1 DESCRIPTION
                                                                    
+Fetch chloroplast genomes, genomic statistics about genes, or specific gene sequences from
+CpBase (http://chloroplast.ocean.washington.edu/).
 
 =head1 AUTHOR 
 
 S. Evan Staton, C<< <statonse at gmail.com> >>
 
-=head1 REQUIRED ARGUMENTS
-
-=over 2
-
-=item -o, --outfile
-
-
-
-=back
-
 =head1 OPTIONS
 
 =over 2
+
+=item --all
+
+Download files of the specified type for all species in the database;
+
+=item --available
+
+Print the number of species available in CpBase and exit.
+
+=item -d, --db
+
+The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles.
+
+=item -f, --format
+
+Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta).
+
+=item -g, --genus
+
+The name of a genus query.
+
+=item -s, --species
+
+The name of a species to query.
+
+=item --statistics
+
+Get assembly statistics for the specified species.
+
+=item --assemblies
+
+Specifies that the chlorplast genome assemblies should be fetched.
+
+=item -l, --lineage
+
+Return the order, family, genus and species (tab separated) of all entries.
+
+=item -o, --outfile
+
+A file to log the results of each search
 
 =item help
 

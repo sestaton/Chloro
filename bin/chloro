@@ -24,8 +24,18 @@ This application will assist the process of creating a screening database of chl
 
 =head1 DEPENDENCIES
 
-The modules App::Cmd, LWP::UserAgent, IPC::System::Simple, and Capture::Tiny are required. See below for information
-on which Perls have been tested.
+The Perl dependencies and the specific versions are listed below.
+
+Module                Version
+HTML::TableExtract    2.11
+LWP::UserAgent        6.05
+Parallel::ForkManager 1.05
+IPC::System::Simple   1.21
+App::Cmd              0.323
+WWW::Mechanize
+Time::HiRes
+Try::Tiny
+XML::LibXML
 
 =head1 LICENSE
  

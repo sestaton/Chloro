@@ -4,7 +4,7 @@ use App::Cmd::Setup -app;
 
 =head1 NAME
 
-Chloro - 
+Chloro - Automated chloroplast genome assembly
 
 =head1 VERSION
 

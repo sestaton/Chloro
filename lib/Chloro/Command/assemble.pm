@@ -14,11 +14,11 @@ use Try::Tiny;
 
 sub opt_spec {
     return (    
-	[ "pairfile|p=s",   "A file of paired, interleaved chlorplast sequences to be assembled" ],
-	[ "singletons|s=s", "The file of unpaired, singleton sequences" ], 
-	[ "threads|t=i",    "The number of threads (hash steps) to execute simultaneously (Default: 1)" ],
-	[ "hashs|i=i",      "The starting hash size (Default: 59)" ],
-	[ "hashe|j=i",      "The maximum hash size (Default: 89)" ],
+	[ "paired|p=s",   "A file of paired, interleaved chlorplast sequences to be assembled"        ],
+	[ "unpaired|u=s", "The file of unpaired, singleton sequences"                                 ], 
+	[ "threads|t=i",  "The number of threads (hash steps) to execute simultaneously (Default: 1)" ],
+	[ "hashs|s=i",    "The starting hash size (Default: 59)"                                      ],
+	[ "hashe|e=i",    "The maximum hash size (Default: 89)"                                       ],
     );
 }
 
@@ -88,14 +88,17 @@ __END__
 
 =head1 NAME
                                                                        
- chloro assemble
+ chloro assemble - Run many chloroplast genome assemblies and pick the best one
 
 =head1 SYNOPSIS    
 
- chloro assemble
+ chloro assemble -p reads_paired_interl.fq -u reads_unpaired.fq -s 59 -e 99
 
 =head1 DESCRIPTION
-                                                                   
+
+This command will take a file of paired and a file of unpaired reads, for example the files
+produced by the 'chloro screenreads' command, and run VelvetOptimiser for a range of hash lengths
+and produce the best assembly found.
 
 =head1 AUTHOR 
 
@@ -105,15 +108,31 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =over 2
 
-=item -o, --outfile
+=item -p, --paired
 
+A file of interleaved, paired reads in FASTA format.
 
+=item -u, --unpaired
+
+A file of unpaired reads in FASTA format.
 
 =back
 
 =head1 OPTIONS
 
 =over 2
+
+=item -t, --treads
+
+The number of threads to use with VelvetOptimiser (Default: 1).
+
+=item -s, --hashs
+
+The starting hash length for Velvet (Default: 59).
+
+=item -d, --hashe
+
+The ending hash length for Velvet (Default: 89).
 
 =item help
 

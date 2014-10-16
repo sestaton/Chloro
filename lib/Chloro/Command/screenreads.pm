@@ -410,7 +410,7 @@ chloro screenreads - screen a set of NGS reads against a chlorplast refence and 
 
 =head1 SYNOPSIS    
  
-chloro screenreads -i seqs.fas -o seqs_nt.bln -t 2 -n 100000 -cpu 2
+chloro screenreads -i seqs.fas -d ref_cp.fas -o seqs_cp.fas -t 2 -n 100000 --cpu 2
 
 =head1 DESCRIPTION
      
@@ -422,18 +422,19 @@ be compressed with gzip or bzip2.
 
 =head1 DEPENDENCIES
 
-Parallel::ForkManager is a non-core Perl library that must
-be installed in order for this script to work. 
+The following Perl dependencies are required:
+
+Module
+IPC::System::Simple
+Parallel::ForkManager
+Try::Tiny
 
 Tested with:
 
 =over
 
 =item *
-L<Parallel::ForkManger> 0.7.9 and Perl 5.8.5 (Red Hat Enterprise Linux AS release 4 (Nahant Update 9))
-
-=item *
-L<Parallel::ForkManager> 0.7.9 and Perl 5.14.2 (Red Hat Enterprise Linux Server release 5.8 (Tikanga))
+L<Parallel::ForkManager> 0.7.9 and Perl 5.20.12 (Red Hat Enterprise Linux Server release 5.9)
 
 =back
 
@@ -451,14 +452,14 @@ statonse at gmail dot com
 
 =item -i, --infile
 
-The file of sequences to BLAST. The format may be Fasta or Fastq,
+The file of sequences to BLAST. The format may be FASTA or FASTQ,
 and may be compressed with either gzip or bzip2.
 
 =item -o, --outfile
 
-A file to place the BLAST results.
+A file to place the screened reads.
 
-=item -n, --numseqs
+=item -n, --seqnum
 
 The size of the splits to create. This number determines how many 
 sequences will be written to each split. 
@@ -469,7 +470,7 @@ potentially be hundreds of thousands of files created.
 
 =item -d, --database
 
-The BLAST database to search. 
+The database to search against in FASTA format.
 
 =back
 
@@ -479,37 +480,15 @@ The BLAST database to search.
 
 =item -t, --threads
 
-The number of BLAST threads to spawn. Default is 1.
+The number of BLAST threads to spawn (Default: 1).
 
 =item -a, --cpu
 
-The number of processors to use for each BLAST thread. Default is 1.
+The number of processors to use for each BLAST thread (Default: 1).
 
-=item -b, --num_aligns
+=item -l, --length
 
-The number of alignments to keep for each query. Default is 250.
-
-=item -v, --num_desc
-
-The number of descriptions to keep for each hit. Default is 500.
-
-=item -p, --blast_prog
-
-The BLAST program to execute. Default is blastp.
-
-=item -bf, --blast_format
-
-The BLAST output format. Default is 8.
-NB: The only allowed options are '8' which is "blasttable" (tabular BLAST output),
-'7' with is "blastxml" (BLAST XML output), and '0' which is the defaout pairwise output.
-
-=item -e, --evalue
-
-The e-value threshold for hits to each query. Default is 1e-5.
-
-=item -w, --warn
-
-Print the BLAST warnings. Defaust is no;
+Length (integer) to be used as the lower threshold for filtering (Default: 50).
 
 =item -h, --help
 
