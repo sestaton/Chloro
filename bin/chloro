@@ -6,7 +6,7 @@ use warnings;
 use lib qw(blib/lib);
 use Chloro;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 Chloro->run;
 
@@ -63,9 +63,9 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =item The method to perform. Must be one of the following:
 
-     assemble: Run many chloroplast genome assemblies and pick the best one.
-       cpbase: Download chloroplast genes or genomes from CpBase.
-  screenreads: Extract chloroplast regions from a read set.
+      assemble: Run many chloroplast genome assemblies and pick the best one.
+ cpbase_search: Download chloroplast genes or genomes from CpBase.
+  screen_reads: Extract chloroplast regions from a read set.
 
 =back
 

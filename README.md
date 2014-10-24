@@ -44,11 +44,11 @@ For the sake of example, we will assume that we have read data from a sunflower 
 
 **1. Create a database of chloroplast genome(s)**
 
-    ./bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae
+    ./bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae
 
 **2. Screen the reads against the reference database**
 
-    ./bin/chloro screenreads -i data/s_1_reads.fq.gz -o data/s_1_reads_screened.fasta -d Helianthus_annuus_NC_007977.fasta -n 100000 -l 50 -t 12
+    ./bin/chloro screen_reads -i data/s_1_reads.fq.gz -o data/s_1_reads_screened.fasta -d Helianthus_annuus_NC_007977.fasta -n 100000 -l 50 -t 12
 
 In the above command, the file 'Helianthus_annuus_NC_007977.fasta' was created by step 1 and is the reference chloroplast genome for the species of interest. The file 's_1_reads.fq.gz' is just an example, this would be a file of WGS reads to screen. The input may be FASTA or FASTQ, and it may be compressed with gzip or bzip2. There is no assumption about the order of reads, but it is assumed that the input contains paired-end data consisting of both forward and reverse reads in the same file.
 
