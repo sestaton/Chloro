@@ -70,7 +70,6 @@ sub _check_args {
     my $gene_clusters = $opt->{gene_clusters};
     my $rna_clusters  = $opt->{rna_clusters};
     my $gene_name     = $opt->{gene_name};
-    my $all           = $opt->{all};
     my $alignments    = $opt->{alignments};
     my $sequences     = $opt->{sequences};
 
