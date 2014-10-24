@@ -1,4 +1,4 @@
-package Chloro::Command::cpbase;
+package Chloro::Command::cpbase_search;
 # ABSTRACT: Download chloroplast genes or genomes from CpBase.
 
 use 5.010;
@@ -17,16 +17,21 @@ no if $] >= 5.018, 'warnings', "experimental::smartmatch";
 
 sub opt_spec {
     return (
-	[ "all",         "Download files of the specified type for all species in the database." ],
-	[ "available",   "Print the number of species available in CpBase and exit." ],
-	[ "db|d=s",      "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
-        [ "format|f=s",  "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
-        [ "genus|g=s",   "The name of a genus query." ],
-	[ "species|s=s", "The name of a species to query." ],
-        [ "statistics",  "Get assembly statistics for the specified species." ],
-	[ "assemblies",  "Specifies that the chlorplast genome assemblies should be fetched." ],
-        [ "lineage|l",   "Return the order, family, genus and species (tab separated) of all entries." ],
-	[ "outfile|o=s", "A file to log the results of each search" ],
+	[ "all",             "Download files of the specified type for all species in the database." ],
+	[ "available",       "Print the number of species available in CpBase and exit." ],
+	[ "db|d=s",          "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
+        [ "format|f=s",      "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
+        [ "genus|g=s",       "The name of a genus query." ],
+	[ "species|s=s",     "The name of a species to query." ],
+        [ "statistics",      "Get assembly statistics for the specified species." ],
+	[ "assemblies",      "Specifies that the chlorplast genome assemblies should be fetched." ],
+        [ "lineage|l",       "Return the order, family, genus and species (tab separated) of all entries." ],
+	[ "outfile|o=s",     "A file to log the results of each search" ],
+	[ "rna_clusters|r",  "Download RNA clusters for the specified genes." ],
+	[ "gene_clusters|c", "Fetch gene cluster information." ],
+	[ "gene_name|n",     "The name of a specific gene to fetch ortholog cluster stats or alignments for." ],
+	[ "alignments",      "Download ortholog alignments for a gene, or all genes." ],
+	[ "sequences",       "Download RNA cluster ortholog sequences for each gene (if --all) or specific genes (if --gene_name)." ],
     );
 }
 
@@ -62,10 +67,18 @@ sub _check_args {
     my $available     = $opt->{available};
     my $assemblies    = $opt->{assemblies};
     my $lineage       = $opt->{lineage};
-    
+    my $gene_clusters = $opt->{gene_clusters};
+    my $rna_clusters  = $opt->{rna_clusters};
+    my $gene_name     = $opt->{gene_name};
+    my $all           = $opt->{all};
+    my $alignments    = $opt->{alignments};
+    my $sequences     = $opt->{sequences};
+
     ## set defaults for search
     my $cpbase_response = "CpBase_database_response.html"; # HTML
-    $format //= 'fasta';
+    $format      //= 'fasta';
+    my $type     = 'fasta';
+    my $alphabet = 'dna';
     
     _get_lineage_for_taxon($available, $cpbase_response) and exit(0) if $available && !$db;
 
@@ -100,6 +113,24 @@ sub _check_args {
 	exit(1);
     }
     
+    if ($gene_clusters && $gene_name) {
+	my $gene_stats = _fetch_ortholog_sets($all, $genus, $species, $gene_name, $alignments, $alphabet, $type);
+	say join "\t", "Gene","Genome","Locus","Product";
+	for my $gene (keys %$gene_stats) {
+	    for my $genome (keys %{$gene_stats->{$gene}}) {
+		for my $locus (keys %{$gene_stats->{$gene}{$genome}}) {
+		    say join "\t", $gene, $genome, $locus, $gene_stats->{$gene}{$genome}{$locus};
+		}
+	    }
+	}
+	exit;
+    }
+
+    if ($rna_clusters && $gene_name) {
+	_fetch_rna_clusters($all, $alignments, $type, $statistics, $sequences, $gene_name, $cpbase_response);
+	exit;
+    }
+
     # make epithet
     my $epithet;
     $epithet = $genus."_".$species if $genus && $species;
@@ -340,7 +371,7 @@ sub _fetch_ortholog_sets {
 			    _fetch_file($file, $endpoint);
 			    unlink $cpbase_response;
 			}
-			elsif ($alignments && 
+			elsif ($alignments &&
 			       !defined $genus && 
 			       !defined $species && 
 			       defined $gene_name && 
@@ -391,7 +422,7 @@ sub _make_alignment_url_from_gene {
 }
 
 sub _fetch_rna_clusters {
-    my ($alignments, $type, $statistics, $sequences, $gene_name, $all, $cpbase_response) = @_;
+    my ($all, $alignments, $type, $statistics, $sequences, $gene_name, $cpbase_response) = @_;
     my $rna_cluster_stats;
     my %rna_cluster_links;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=rna_cluster_index";
@@ -399,7 +430,7 @@ sub _fetch_rna_clusters {
     $mech->get( $urlbase );
     my @links = $mech->links();
     my $gene;
-    for my $link ( @links ) {
+    for my $link (@links) {
         next unless defined $link->text;
 	if ($link->url =~ /u_feature_id=(\d+)/) {
 	    my $id = $1;
@@ -657,7 +688,8 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =item --all
 
-Download files of the specified type for all species in the database;
+Download files of the specified type for all species in the database (applies to the --gene_clusters
+and --rna_clusters options).
 
 =item --available
 
@@ -679,9 +711,29 @@ The name of a genus query.
 
 The name of a species to query.
 
+=item -r, --rna_clusters
+
+Download RNA clusters for the specified genes.
+
+=item -c, --gene_clusters
+
+Fetch gene cluster information.
+
+=item -n, --gene_name
+
+The name of a specific gene to fetch ortholog cluster stats or alignments for.
+
+=item --alignments
+
+Download ortholog alignments for a gene, or all genes.
+
 =item --statistics
 
 Get assembly statistics for the specified species.
+
+=item --sequences
+
+Download RNA cluster ortholog sequences for each gene (if --all) or specific genes (if --gene_name).
 
 =item --assemblies
 
