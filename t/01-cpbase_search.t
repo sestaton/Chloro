@@ -8,7 +8,7 @@ use File::Spec;
 use File::Copy qw(move);
 use Test::More tests => 21;
 
-my @menu = capture([0..5], "bin/chloro help cpbase");
+my @menu = capture([0..5], "bin/chloro help cpbase_search");
 
 my $opts   = 0;
 my $expnum = 0;
@@ -21,9 +21,9 @@ for my $opt (@menu) {
     ++$opts if $opt =~ /^-/;
 }
 
-is( $opts, 10, 'Correct number of options for chloro cpbase' );
+is( $opts, 16, 'Correct number of options for chloro cpbase_search' );
 
-my @genomes = capture([0..5], "bin/chloro cpbase --available");
+my @genomes = capture([0..5], "bin/chloro cpbase_search --available");
 
 my ($genome_num) = map { /^(\d+) genomes/ } @genomes;
 is( $genome_num, 342, 'Found the correct number of genomes in CpBase' );
@@ -34,7 +34,7 @@ my $dbname;
 # changes when it is returned by the web service (that part can't be fixed), 
 # and the numbers are hard-coded, so they could easily break (that part needs to be fixed).
 for my $db ('viridiplantae', 'non_viridiplantae', 'red lineage', 'rhodophyta', 'stramenopiles') {
-    my @virid_genomes = capture([0..5], "bin/chloro cpbase -d '$db' --available");
+    my @virid_genomes = capture([0..5], "bin/chloro cpbase_search -d '$db' --available");
 
     $dbname = $db if $db eq 'stramenopiles';
     $dbname = ucfirst($db) if $db =~ /^viridiplantae$/ || $db eq 'rhodophyta';
@@ -49,7 +49,7 @@ for my $db ('viridiplantae', 'non_viridiplantae', 'red lineage', 'rhodophyta', '
     is( $dbgenomes, $expnum, "Found the correct number of genomes in $db database" );
 }
 
-my @sunfl_stats = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --statistics -d viridiplantae");
+my @sunfl_stats = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --statistics -d viridiplantae");
 for my $sun_stat (@sunfl_stats) {
     next if $sun_stat =~ /^=/;
     my ($type, $stat) = split /\s+/, $sun_stat;
@@ -79,16 +79,16 @@ for my $sun_stat (@sunfl_stats) {
     }
 }
 
-my @sunfl_fa_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae");
+my @sunfl_fa_genome = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae");
 ok( -e $sunfl_fa_genome, 'Can fetch Fasta-formatted genomes from CpBase' );
 move($sunfl_fa_genome, "t/test_data");
 #unlink $sunfl_fa_genome;
 
-my @sunfl_gb_genome = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus --assemblies -d viridiplantae -f genbank");
+my @sunfl_gb_genome = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae -f genbank");
 ok( -e $sunfl_gb_genome, 'Can fetch Genbank-formatted genomes from CpBase' );
 unlink $sunfl_gb_genome;
 
-my @sunfl_lineage = capture([0..5], "bin/chloro cpbase -g helianthus -s annuus -l -d viridiplantae");
+my @sunfl_lineage = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus -l -d viridiplantae");
 
 my ($order, $fam, $gen, $sp) = map { split /\t/ } @sunfl_lineage;
 like( $order, qr/Asterales/,  'Correct order returned for sunflower'   );

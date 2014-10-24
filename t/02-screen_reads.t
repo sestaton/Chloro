@@ -8,7 +8,7 @@ use File::Spec;
 use IPC::System::Simple qw(capture);
 use Test::More tests => 8;
 
-my @menu = capture([0..5], "bin/chloro help screenreads");
+my @menu = capture([0..5], "bin/chloro help screen_reads");
 
 my $opts     = 0;
 my $tot      = 0;
@@ -26,9 +26,9 @@ for my $opt (@menu) {
     ++$opts if $option;
 }
 
-is( $opts, 7, 'Correct number of options for chloro screenreads' );
+is( $opts, 7, 'Correct number of options for chloro screen_reads' );
 
-my @scr_results = capture([0..5], "bin/chloro screenreads -i $infile -o $outfile -d $database -n $seqnum -l 50");
+my @scr_results = capture([0..5], "bin/chloro screen_reads -i $infile -o $outfile -d $database -n $seqnum -l 50");
 ok( -e $outfile, 'Can screen reads against a chloroplast genome' );
 
 for my $res (@scr_results) {
