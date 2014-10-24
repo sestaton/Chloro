@@ -130,7 +130,7 @@ The number of threads to use with VelvetOptimiser (Default: 1).
 
 The starting hash length for Velvet (Default: 59).
 
-=item -d, --hashe
+=item -e, --hashe
 
 The ending hash length for Velvet (Default: 89).
 
