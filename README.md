@@ -27,7 +27,6 @@ tar xzf chloro.tar.gz
 mv sestaton-Chloro* Chloro
 cd Chloro
 ./install_deps.sh
-
 cpanm --installdeps .
 ```
 
