@@ -1,4 +1,4 @@
-package Chloro::Command::screenreads;
+package Chloro::Command::screen_reads;
 # ABSTRACT: Extract chloroplast regions from a read set.
 
 use 5.010;
