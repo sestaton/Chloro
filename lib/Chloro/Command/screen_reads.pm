@@ -263,6 +263,11 @@ sub _repair_reads {
     my $hmm_dir = basename(dirname($cmd_dir));
     my $chl_dir = basename(dirname($hmm_dir));
     my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'bin', 'pairfq_lite.pl');
+
+    unless (-e $pairfq) {
+	die "\nERROR: 'pairfq_lite.pl' script not found. Please run the 'install_deps.sh' script before proceeding. Exiting.\n";
+    }
+
     my ($sname, $spath, $ssuffix) = fileparse($scr_reads, qr/\.[^.]*/);
 
     my $ffile  = File::Spec->catfile($spath, $sname."_f".$ssuffix);

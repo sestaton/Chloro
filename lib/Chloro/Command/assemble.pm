@@ -55,8 +55,19 @@ sub _run_assembly {
     my $hmm_dir = basename(dirname($cmd_dir));
     my $chl_dir = basename(dirname($hmm_dir));
     my $vel_dir = File::Spec->catdir($chl_dir, 'src', 'velvet');
+    my $velveth = File::Spec->catfile($chl_dir, 'src', 'velvet', 'velveth');
+    my $velvetg = File::Spec->catfile($chl_dir, 'src', 'velvet', 'velvetg');
     my $vo      = File::Spec->catfile(abs_path($chl_dir), 'src', 'VelvetOptimiser', 'VelvetOptimiser.pl');
+
     local $ENV{PATH} = "$ENV{PATH}:$vel_dir";
+
+    unless (-e $vo) {
+        die "\nERROR: 'VelvetOptimiser' not found. Please run the 'install_deps.sh' script before proceeding. Exiting.\n";
+    }
+
+    unless (-e $velveth && -e $velvetg) {
+        die "\nERROR: Velvet executables not found. Please run the 'install_deps.sh' script before proceeding. Exiting.\n";
+    }
 
     my $exit_value;
     $hashs  //= 59;
