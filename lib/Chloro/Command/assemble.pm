@@ -86,7 +86,12 @@ sub _run_assembly {
 
     my ($stdout, $stderr, @res) = capture { system([0..5], @vo_cmd); };
 
-    say "\nERROR: VelvetOptimiser seems to have exited. Here is the message: $stderr" if $stderr;
+    unless (-d $dirname) {
+	say "\nERROR: VelvetOptimiser seems to have exited. Here is the message:\n$stderr" if $stderr;
+    }
+
+    say "\nAssembly results can be found in 'contigs.fa' in the directory: $dirname.\n".
+	"See '${dirname}_logfile.txt' for assembly details.\n";
 
     return $exit_value;
 }
