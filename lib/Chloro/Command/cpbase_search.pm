@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Chloro -command;
 use Time::HiRes qw(gettimeofday);
-use LWP::UserAgent;
+use HTTP::Tiny;
 use WWW::Mechanize;
 use HTML::TableExtract;
 use XML::LibXML;
@@ -151,19 +151,18 @@ sub _check_args {
 	default {                     die "Invalid name for option db."; }
     }
 
-    my $ua = LWP::UserAgent->new;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run&genome_taxonomy=$db";
-    my $response = $ua->get($urlbase);
+    my $response = HTTP::Tiny->new->get($urlbase);
 
-    # check for a response
-    unless ($response->is_success) {
-	die "Can't get url $urlbase -- ", $response->status_line;
-    }
+    # check for a response 
+    unless ($response->{success}) { 
+	die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason}; 
+    }             
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->content;
+    say $out $response->{content};
     close $out;
-
+    
     my $id_map = _get_species_id($urlbase);
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -246,17 +245,16 @@ sub _get_cp_data {
     my ($id) = @_;
     
     my %assem_stats;
-    my $ua = LWP::UserAgent->new;
     my $cpbase_response = "CpBase_database_response_$id".".html";
-    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?genome_id=$id&view=genome";
-    my $response = $ua->get($urlbase);
+    my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?genome_id=$id&view=genome";
+    my $response = HTTP::Tiny->new->get($urlbase);
 
-    unless ($response->is_success) {
-	die "Can't get url $urlbase -- ", $response->status_line;
+    unless ($response->{success}) {
+        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->content;
+    say $out $response->{content};
     close $out;
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -318,18 +316,17 @@ sub _fetch_ortholog_sets {
         next unless defined $link && $link->url =~ /tools/;
 	if ($link->url =~ /u_feature_id=(\d+)/) {
 	    my $id = $1;
-	    my $ua = LWP::UserAgent->new;
 	    my $cpbase_response = "CpBase_database_response_gene_clusters_$id".".html";
 	            
-	    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?u_feature_id=$id&view=universal_feature"; 
-	    my $response = $ua->get($urlbase);
-	            
-	    unless ($response->is_success) {
-		die "Can't get url $urlbase -- ", $response->status_line;
+	    my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?u_feature_id=$id&view=universal_feature"; 
+	    my $response = HTTP::Tiny->new->get($urlbase);
+       
+	    unless ($response->{success}) {
+		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->content;
+	    say $out $response->{content};
 	    close $out;
 	            
 	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -426,7 +423,7 @@ sub _fetch_rna_clusters {
     my %rna_cluster_links;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=rna_cluster_index";
     my $mech = WWW::Mechanize->new();
-    $mech->get( $urlbase );
+    $mech->get($urlbase);
     my @links = $mech->links();
     my $gene;
     for my $link (@links) {
@@ -441,15 +438,14 @@ sub _fetch_rna_clusters {
     
     if ($statistics && $all) {
 	for my $gene (keys %rna_cluster_links) {
-	    my $ua = LWP::UserAgent->new;
-	    my $response = $ua->get($rna_cluster_links{$gene});
-	            
-	    unless ($response->is_success) {
-		die "Can't get url $urlbase -- ", $response->status_line;
+	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
+
+	    unless ($response->{success}) {
+		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->content;
+	    say $out $response->{content};
 	    close $out;
 	            
 	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -465,15 +461,14 @@ sub _fetch_rna_clusters {
     }
     elsif ($statistics && $gene_name) { 
 	for my $gene (keys %rna_cluster_links) {
-	    my $ua = LWP::UserAgent->new;
-	    my $response = $ua->get($rna_cluster_links{$gene});
-	            
-	    unless ($response->is_success) {
-		die "Can't get url $urlbase -- ", $response->status_line;
+	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
+
+	    unless ($response->{success}) {
+		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->content;
+	    say $out $response->{content};
 	    close $out;
 
 	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -530,16 +525,15 @@ sub _get_lineage_for_taxon {
     my ($available, $cpbase_response,) = @_;
 
     my %taxa;
-    my $ua = LWP::UserAgent->new;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run";
-    my $response = $ua->get($urlbase);
+    my $response = HTTP::Tiny->new->get($urlbase);
 
-    unless ($response->is_success) {
-	die "Can't get url $urlbase -- ", $response->status_line;
+    unless ($response->{success}) {
+        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->content;
+    say $out $response->{content};
     close $out;
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
@@ -574,16 +568,15 @@ sub _get_lineage_from_taxonid {
     my ($id) = @_;
     my $esumm = "esumm_$id.xml"; 
  
-    my $ua = LWP::UserAgent->new;
     my $urlbase  = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=taxonomy&id=$id";
-    my $response = $ua->get($urlbase);
+    my $response = HTTP::Tiny->new->get($urlbase);
 
-    unless ($response->is_success) {
-	die "Can't get url $urlbase -- ", $response->status_line;
+    unless ($response->{success}) {
+        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $esumm or die "\nERROR: Could not open file: $!\n";
-    say $out $response->content;
+    say $out $response->{content};
     close $out;
 
     my $parser = XML::LibXML->new;
@@ -614,17 +607,16 @@ sub _get_lineage_from_taxonid {
 sub _fetch_taxonid {
     my ($genus, $species) = @_;
 
-    my $esearch = "esearch_$genus"."_"."$species.xml";
-    my $ua = LWP::UserAgent->new;
+    my $esearch  = "esearch_$genus"."_"."$species.xml";
     my $urlbase  = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=$genus%20$species";
-    my $response = $ua->get($urlbase);
+    my $response = HTTP::Tiny->new->get($urlbase);
 
-    unless ($response->is_success) {
-	die "Can't get url $urlbase -- ", $response->status_line;
+    unless ($response->{success}) {
+        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $esearch or die "\nERROR: Could not open file: $!\n";
-    say $out $response->content;
+    say $out $response->{content};
     close $out;
 
     my $id;
@@ -643,18 +635,17 @@ sub _fetch_taxonid {
 sub _fetch_file {
     my ($file, $endpoint) = @_;
 
-    my $ua = LWP::UserAgent->new;
     unless (-e $file) {
-	my $response = $ua->get($endpoint);
-	
+	my $response = HTTP::Tiny->new->get($endpoint);
+
 	# check for a response
-	unless ($response->is_success) {
-	    die "Can't get url $endpoint -- ", $response->status_line;
+	unless ($response->{success}) {
+	    die "Can't get url $endpoint -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
 	}
 
 	# open and parse the results
 	open my $out, '>', $file or die "\nERROR: Could not open file: $!\n";
-	say $out $response->content;
+	say $out $response->{content};
 	close $out;
     }
 }
