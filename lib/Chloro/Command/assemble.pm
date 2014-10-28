@@ -59,7 +59,7 @@ sub _run_assembly {
     my $velvetg = File::Spec->catfile($chl_dir, 'src', 'velvet', 'velvetg');
     my $vo      = File::Spec->catfile(abs_path($chl_dir), 'src', 'VelvetOptimiser', 'VelvetOptimiser.pl');
 
-    local $ENV{PATH} = "$ENV{PATH}:$vel_dir";
+    local $ENV{PATH} = "$vel_dir:$ENV{PATH}";
 
     unless (-e $vo) {
         die "\nERROR: 'VelvetOptimiser' not found. Please run the 'install_deps.sh' script before proceeding. Exiting.\n";
