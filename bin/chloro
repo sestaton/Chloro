@@ -6,7 +6,7 @@ use warnings;
 use lib qw(blib/lib);
 use Chloro;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 Chloro->run;
 
