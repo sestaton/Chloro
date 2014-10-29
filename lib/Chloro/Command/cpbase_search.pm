@@ -156,7 +156,7 @@ sub _check_args {
 
     # check for a response 
     unless ($response->{success}) { 
-	die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason}; 
+	die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason}; 
     }             
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -250,7 +250,7 @@ sub _get_cp_data {
     my $response = HTTP::Tiny->new->get($urlbase);
 
     unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -322,7 +322,7 @@ sub _fetch_ortholog_sets {
 	    my $response = HTTP::Tiny->new->get($urlbase);
        
 	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -441,7 +441,7 @@ sub _fetch_rna_clusters {
 	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
 
 	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -464,7 +464,7 @@ sub _fetch_rna_clusters {
 	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
 
 	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
 	    }
 	            
 	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -529,7 +529,7 @@ sub _get_lineage_for_taxon {
     my $response = HTTP::Tiny->new->get($urlbase);
 
     unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
@@ -572,7 +572,7 @@ sub _get_lineage_from_taxonid {
     my $response = HTTP::Tiny->new->get($urlbase);
 
     unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $esumm or die "\nERROR: Could not open file: $!\n";
@@ -612,7 +612,7 @@ sub _fetch_taxonid {
     my $response = HTTP::Tiny->new->get($urlbase);
 
     unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
     }
 
     open my $out, '>', $esearch or die "\nERROR: Could not open file: $!\n";
@@ -640,7 +640,7 @@ sub _fetch_file {
 
 	# check for a response
 	unless ($response->{success}) {
-	    die "Can't get url $endpoint -- Status: ", $response->{status}, "-- Reason: ", $response->{reason};
+	    die "Can't get url $endpoint -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
 	}
 
 	# open and parse the results
