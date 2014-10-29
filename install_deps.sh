@@ -1,6 +1,11 @@
 #!/bin/bash
 
-mkdir src data
+if [ -d data ]; then
+    mkdir -p src
+elif [ ! -d data ]; then
+    mkdir -p data src
+fi
+
 cd src
 
 ## Velvet
@@ -18,5 +23,5 @@ cd ..
 
 ## Pairfq-lite
 cd bin
-wget --no-check-certificate https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
+curl -o pairfq_lite.pl https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
 chmod +x pairfq_lite.pl
