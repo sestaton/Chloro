@@ -27,7 +27,7 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-	'LWP::UserAgent'        => 6.05,       
+	'HTTP::Tiny'            => 0.040,       
         'IPC::System::Simple'   => 1.21,
 	'App::Cmd'              => 0.323,
 	'Parallel::ForkManager' => 1.05,
