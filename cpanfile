@@ -1,5 +1,5 @@
 requires 'HTML::TableExtract',    '2.11';
-requires 'HTTP::Tiny',            '0.40';
+requires 'HTTP::Tiny',            '0.040';
 requires 'Parallel::ForkManager', '1.05';
 requires 'IPC::System::Simple',   '1.21';
 requires 'App::Cmd',              '0.323';
