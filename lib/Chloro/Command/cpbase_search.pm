@@ -150,8 +150,8 @@ sub _check_args {
 	when (/viridiplantae/i) {     $db = "Viridiplantae"; }
 	default {                     die "Invalid name for option db."; }
     }
-
-    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run&genome_taxonomy=$db";
+    
+    my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run&genome_taxonomy=$db";
     my $response = HTTP::Tiny->new->get($urlbase);
 
     # check for a response 
