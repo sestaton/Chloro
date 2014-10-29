@@ -7,4 +7,4 @@ requires 'WWW::Mechanize';
 requires 'Time::HiRes';
 requires 'Try::Tiny';
 requires 'XML::LibXML';
-requires 'BioPerl';                        # required by VelvetOptimiser
+#requires 'BioPerl';                        # required by VelvetOptimiser
