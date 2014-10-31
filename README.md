@@ -11,7 +11,7 @@ Automated chloroplast genome assembly
 
 **SPECIAL NOTE**
 
-This is a work in process, and has only been tested with Illumina data. Also, the documentation may be incomplete for some commands. Currently, only VelvetOptimiser is used for assembly, though more assembly methods will be added. Please report bugs or issues that you find. See below for more information on usage and reporting issues.
+This is a work in process, and currently only VelvetOptimiser is used for assembly, though more assembly methods will be added. Please report any feature requests and bugs or issues that you find. See below for more information on usage and reporting issues.
 
 **DEPENDENCIES**
 
