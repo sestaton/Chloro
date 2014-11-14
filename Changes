@@ -1,6 +1,22 @@
 Revision history for HMMER2GO
 
 Version	Date	Location
+0.04	11/13/2014	Vancouver, BC
+
+- Simplify usage of 'cpbase_search' command by limiting
+  the functionality to only getting genome sequences and statistics.
+  (The other features were too complicated to maintain and test in this
+  application and will be put into an API for CpBase.)
+- Add method to write search results for 'cpbase_search' command
+  to a file instead of stdout (and add tests for this).
+- Add automated method to build dependencies, which removes a step
+  during the install process.
+- Remove use of libxml (XML::LibXML) due to the requirement of external
+  C libraries that would have to be installed by an admin.
+- Modify 'screen_reads' command execution to reuse the same method instead
+  of duplicating code for executing commands.
+- Add portable paths for test commands and files.
+
 0.03	10/28/2014	Vancouver, BC
 
 - Add tests to see if dependencies were installed.

@@ -10,7 +10,10 @@ if (eval ($ExtUtils::MakeMaker::VERSION) <= 6.55) {
 }
 
 BEGIN {
-    system("chmod +x bin/chloro");
+    system("chmod +x bin/chloro") == 0 or die $!;
+    if (! -d 'src') {
+	system("./install_deps.sh") == 0 or die $!;
+    }
 }
 
 WriteMakefile(

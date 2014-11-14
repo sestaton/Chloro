@@ -8,12 +8,14 @@ use File::Spec;
 use File::Copy qw(move);
 use Test::More tests => 21;
 
-my @menu = capture([0..5], "bin/chloro help cpbase_search");
+my $cmd  = File::Spec->catfile('bin', 'chloro');
+my @menu = capture([0..5], "$cmd help cpbase_search");
 
 my $opts   = 0;
 my $expnum = 0;
 my $sunfl_fa_genome = 'Helianthus_annuus_NC_007977.fasta';
 my $sunfl_gb_genome = 'Helianthus_annuus_NC_007977.gb';
+my $search_out      = 'cpstats.txt';
 
 for my $opt (@menu) {
     next if $opt =~ /^chloro|^ *$/;
@@ -21,12 +23,18 @@ for my $opt (@menu) {
     ++$opts if $opt =~ /^-/;
 }
 
-is( $opts, 16, 'Correct number of options for chloro cpbase_search' );
+is( $opts, 7, 'Correct number of options for chloro cpbase_search' );
 
-my @genomes = capture([0..5], "bin/chloro cpbase_search --available");
+my @genomes = capture([0..5], "$cmd cpbase_search --available");
 
 my ($genome_num) = map { /^(\d+) genomes/ } @genomes;
 is( $genome_num, 342, 'Found the correct number of genomes in CpBase' );
+undef @genomes;
+
+@genomes = capture([0..5], "$cmd cpbase_search -o $search_out --available");
+ok( -s $search_out, 'Results were written to file' );
+ok( ! @genomes,     'Results were not written to stdout' );
+unlink $search_out;
 
 my $dbname;
 # TODO: improve these tests, make them more generic. 
@@ -34,7 +42,7 @@ my $dbname;
 # changes when it is returned by the web service (that part can't be fixed), 
 # and the numbers are hard-coded, so they could easily break (that part needs to be fixed).
 for my $db ('viridiplantae', 'non_viridiplantae', 'red lineage', 'rhodophyta', 'stramenopiles') {
-    my @virid_genomes = capture([0..5], "bin/chloro cpbase_search -d '$db' --available");
+    my @virid_genomes = capture([0..5], "$cmd cpbase_search -d '$db' --available");
 
     $dbname = $db if $db eq 'stramenopiles';
     $dbname = ucfirst($db) if $db =~ /^viridiplantae$/ || $db eq 'rhodophyta';
@@ -49,7 +57,7 @@ for my $db ('viridiplantae', 'non_viridiplantae', 'red lineage', 'rhodophyta', '
     is( $dbgenomes, $expnum, "Found the correct number of genomes in $db database" );
 }
 
-my @sunfl_stats = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --statistics -d viridiplantae");
+my @sunfl_stats = capture([0..5], "$cmd cpbase_search -g helianthus -s annuus --statistics -d viridiplantae");
 for my $sun_stat (@sunfl_stats) {
     next if $sun_stat =~ /^=/;
     my ($type, $stat) = split /\s+/, $sun_stat;
@@ -79,21 +87,28 @@ for my $sun_stat (@sunfl_stats) {
     }
 }
 
-my @sunfl_fa_genome = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae");
-ok( -e $sunfl_fa_genome, 'Can fetch Fasta-formatted genomes from CpBase' );
-move($sunfl_fa_genome, "t/test_data");
-#unlink $sunfl_fa_genome;
+undef @sunfl_stats;
+@sunfl_stats = capture([0..5], "$cmd cpbase_search -g helianthus -s annuus -o $search_out --statistics -d viridiplantae");
+ok( -s $search_out, 'Results were written to file' );
+ok( ! @sunfl_stats, 'Results were not written to stdout' );
+unlink $search_out;
 
-my @sunfl_gb_genome = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae -f genbank");
+my @sunfl_fa_genome = capture([0..5], "$cmd cpbase_search -g helianthus -s annuus -d viridiplantae");
+ok( -e $sunfl_fa_genome, 'Can fetch Fasta-formatted genomes from CpBase' );
+my $outdir = File::Spec->catdir('t', 'test_data');
+move($sunfl_fa_genome, $outdir);
+
+my @sunfl_gb_genome = capture([0..5], "$cmd cpbase_search -g helianthus -s annuus -d viridiplantae -f genbank");
 ok( -e $sunfl_gb_genome, 'Can fetch Genbank-formatted genomes from CpBase' );
 unlink $sunfl_gb_genome;
 
-my @sunfl_lineage = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus -l -d viridiplantae");
+##NB: These options have been removed as of version 0.04
 
-my ($order, $fam, $gen, $sp) = map { split /\t/ } @sunfl_lineage;
-like( $order, qr/Asterales/,  'Correct order returned for sunflower'   );
-like( $fam,   qr/Asteraceae/, 'Correct family returned for sunflower'  );
-like( $gen,   qr/helianthus/, 'Correct genus returned for sunflower'   );
-like( $sp,    qr/annuus/,     'Correct species returned for sunflower' );
+#my @sunfl_lineage = capture([0..5], "bin/chloro cpbase_search -g helianthus -s annuus -l -d viridiplantae");
+#my ($order, $fam, $gen, $sp) = map { split /\t/ } @sunfl_lineage;
+#like( $order, qr/Asterales/,  'Correct order returned for sunflower'   );
+#like( $fam,   qr/Asteraceae/, 'Correct family returned for sunflower'  );
+#like( $gen,   qr/helianthus/, 'Correct genus returned for sunflower'   );
+#like( $sp,    qr/annuus/,     'Correct species returned for sunflower' );
 
 done_testing();

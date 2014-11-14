@@ -130,13 +130,8 @@ sub _run_blast {
 		 "-a $cpu ".
 		 "-m 8";
 
-    try {
-	$exit_value = system([0..5], @blast_cmd);
-    }
-    catch {
-	die "\nERROR: BLAST exited with exit value $exit_value. Here is the exception: $_\n";
-    };
-
+    _run_cmd(\@blast_cmd, 'blastall');
+    
     return $subseq_out;
 }
 
@@ -149,13 +144,8 @@ sub _make_blastdb {
     unlink $db_path if -e $db_path;
     my $format_log = 'formatdb.log';
 
-    my $exit_value;
-    try {
-	$exit_value = system([0..5], "formatdb -p F -i $database -t $db -n $db_path 2>&1 > /dev/null");
-    }
-    catch {
-	die "\nERROR: formatdb exited with exit value $exit_value. Here is the exception: $_\n";
-    };
+    my @formatdb = "formatdb -p F -i $database -t $db -n $db_path 2>&1 > /dev/null";
+    _run_cmd(\@formatdb, 'formatdb');
     
     unlink $format_log if -e $format_log;
     return $db_path;
@@ -284,12 +274,7 @@ sub _repair_reads {
 	              "-f $ffile ".
 		      "-r $rfile";
 
-    try {
-	system([0..5], @split_pairs);
-    }
-    catch {
-	die "\nERROR: 'pairfq splitpairs' exited abnormally. Here is the exception: $_\n";
-    };
+    _run_cmd(\@split_pairs, 'pairfq splitpairs');
 
     my @make_pairs = "$pairfq makepairs ".
                       "-f $ffile ".
@@ -299,24 +284,14 @@ sub _repair_reads {
 		      "-fs $fsfile ".
 		      "-rs $rsfile";
 
-    try {
-        system([0..5], @make_pairs);
-    }
-    catch {
-        die "\nERROR: 'pairfq makepairs' exited abnormally. Here is the exception: $_\n";
-    };
+    _run_cmd(\@make_pairs, 'pairfq makepairs');
     
     my @join_pairs = "$pairfq joinpairs ".
                       "-f $fpfile ".
                       "-r $rpfile ".
 		      "-o $ifile";
 
-    try {
-        system([0..5], @join_pairs);
-    }
-    catch {
-        die "\nERROR: 'pairfq joinpairs' exited abnormally. Here is the exception: $_\n";
-    };
+    _run_cmd(\@join_pairs, 'pairfq joinpairs');
 
     open my $s_out, '>>', $sfile or die "\nERROR: Could not open file: $sfile\n";
 
@@ -384,6 +359,18 @@ sub _readfq {
     }
     $aux->[1] = 1;
     return ($name, $seq);
+}
+
+sub _run_cmd {
+    my ($cmd, $name) = @_;
+
+    my $exit_value;
+    try {
+        $exit_value = system([0..5], @$cmd);
+    }
+    catch {
+        die "\nERROR: '$name' exited with exit value: $exit_value. Here is the exception: $_\n";
+    };
 }
 
 sub _get_fh {

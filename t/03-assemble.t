@@ -10,15 +10,16 @@ use File::Spec;
 use File::Path qw(remove_tree);
 use Test::More tests => 15;
 
-my @menu = capture([0..5], "bin/chloro help assemble");
+my $cmd  = File::Spec->catfile('bin', 'chloro');
+my @menu = capture([0..5], "$cmd help assemble");
 
 my $opts      = 0;
 my $tot       = 0;
 my $scr       = 0;
 my $seqnum    = 20;
 my $outdir    = "VelvetOpt_k59-k59";
-my $pairfile  = "t/test_data/t_cpseqs_screened_paired_interl.fas";
-my $upairfile = "t/test_data/t_cpseqs_screened_unpaired.fas";
+my $pairfile  = File::Spec->catfile('t', 'test_data', 't_cpseqs_screened_paired_interl.fas');
+my $upairfile = File::Spec->catfile('t', 'test_data', 't_cpseqs_screened_unpaired.fas');
 
 for my $opt (@menu) {
     next if $opt =~ /^Err|^Usage|^chloro|^ *$/;
@@ -30,7 +31,7 @@ for my $opt (@menu) {
 
 is( $opts, 5, 'Correct number of options for chloro assemble' );
 
-my @assemb_results = capture([0..5], "bin/chloro assemble -p $pairfile -u $upairfile -s 59 -e 59");
+my @assemb_results = capture([0..5], "$cmd assemble -p $pairfile -u $upairfile -s 59 -e 59");
 
 my @log;
 find( sub {
