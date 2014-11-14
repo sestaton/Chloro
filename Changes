@@ -13,6 +13,8 @@ Version	Date	Location
   during the install process.
 - Remove use of libxml (XML::LibXML) due to the requirement of external
   C libraries that would have to be installed by an admin.
+- Modify 'screen_reads' command execution to reuse the same method instead
+  of duplicating code for executing commands.
 
 0.03	10/28/2014	Vancouver, BC
 
