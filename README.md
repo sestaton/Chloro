@@ -28,12 +28,13 @@ mv sestaton-Chloro* Chloro
 cd Chloro
 ./install_deps.sh
 cpanm --installdeps .
+perl Makefile.PL && make
 ```
 
 It is a good idea to test if the installation was successful, and this can be done with the following command:
 
 ```bash
-perl Makefile.PL && make test
+make test
 ```
 
 If one of these commands fails, it is best to run `make clean` and resolve the issue before proceeding. The main application (called `chloro`) is in the 'bin' directory, and the usage is described below. Note that the input read data may be placed anywhere, but it is suggested that the input data is placed in the 'data' directory so that all the results are kept together in a separate directory. 
