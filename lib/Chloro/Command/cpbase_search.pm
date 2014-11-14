@@ -283,49 +283,6 @@ sub _get_lineage_for_taxon {
     exit;
 }
 
-<<<<<<< HEAD
-sub _get_lineage_from_taxonid {
-    my ($id) = @_;
-    my $esumm = "esumm_$id.xml"; 
- 
-    my $urlbase  = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=taxonomy&id=$id";
-    my $response = HTTP::Tiny->new->get($urlbase);
-
-    unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-    }
-
-    open my $out, '>', $esumm or die "\nERROR: Could not open file: $!\n";
-    say $out $response->{content};
-    close $out;
-
-    my $parser = XML::LibXML->new;
-    my $doc    = $parser->parse_file($esumm);
-    my ($order, $family, $lineage);
-
-    for my $node ( $doc->findnodes('//TaxaSet/Taxon') ) {
-	($lineage) = $node->findvalue('Lineage/text()');
-	if ($lineage =~ /viridiplantae/i) {
-	    ($family) = map  { s/\;$//; $_; }
-	                grep { /(\w+aceae)/ } 
-	                map  { split /\s+/  } $lineage;
-	    
-	    ($order)  = map  { s/\;$//; $_; }
-	                grep { /(\w+ales)/ }
-	                map  { split /\s+/  } $lineage;
-	}
-	else {
-	    ## need method to get order/family from non-viridiplantae
-	    say $lineage;
-	}
-    }
-    unlink $esumm;
-
-    return ($lineage, $order, $family);
-}
-
-=======
->>>>>>> topic/simplify_search
 sub _fetch_taxonid {
     my ($genus, $species) = @_;
 
