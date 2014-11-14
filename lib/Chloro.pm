@@ -8,11 +8,11 @@ Chloro - Automated chloroplast genome assembly
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub global_opt_spec {
     [ 'man|m' => "Get the manual entry for a command" ];

@@ -10,7 +10,6 @@ use Capture::Tiny qw(:all);
 use File::Basename;
 use File::Spec;
 use Cwd qw(abs_path);
-use Try::Tiny;
 
 sub opt_spec {
     return (    

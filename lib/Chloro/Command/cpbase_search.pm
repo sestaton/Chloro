@@ -9,29 +9,20 @@ use Time::HiRes qw(gettimeofday);
 use HTTP::Tiny;
 use WWW::Mechanize;
 use HTML::TableExtract;
-use XML::LibXML;
+use XML::Twig;
 use File::Basename;
-use Try::Tiny;
 use Pod::Usage;
 no if $] >= 5.018, 'warnings', "experimental::smartmatch";
 
 sub opt_spec {
     return (
-	[ "all",             "Download files of the specified type for all species in the database." ],
 	[ "available",       "Print the number of species available in CpBase and exit." ],
 	[ "db|d=s",          "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
         [ "format|f=s",      "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
         [ "genus|g=s",       "The name of a genus query." ],
 	[ "species|s=s",     "The name of a species to query." ],
         [ "statistics",      "Get assembly statistics for the specified species." ],
-	[ "assemblies",      "Specifies that the chlorplast genome assemblies should be fetched." ],
-        [ "lineage|l",       "Return the order, family, genus and species (tab separated) of all entries." ],
 	[ "outfile|o=s",     "A file to log the results of each search" ],
-	[ "rna_clusters|r",  "Download RNA clusters for the specified genes." ],
-	[ "gene_clusters|c", "Fetch gene cluster information." ],
-	[ "gene_name|n",     "The name of a specific gene to fetch ortholog cluster stats or alignments for." ],
-	[ "alignments",      "Download ortholog alignments for a gene, or all genes." ],
-	[ "sequences",       "Download RNA cluster ortholog sequences for each gene (if --all) or specific genes (if --gene_name)." ],
     );
 }
 
@@ -59,40 +50,17 @@ sub _check_args {
     
     my $outfile       = $opt->{outfile};
     my $db            = $opt->{db};
-    my $all           = $opt->{all};
     my $format        = $opt->{format};
     my $genus         = $opt->{genus};
     my $species       = $opt->{species};
     my $statistics    = $opt->{statistics};
     my $available     = $opt->{available};
-    my $assemblies    = $opt->{assemblies};
-    my $lineage       = $opt->{lineage};
-    my $gene_clusters = $opt->{gene_clusters};
-    my $rna_clusters  = $opt->{rna_clusters};
-    my $gene_name     = $opt->{gene_name};
-    my $alignments    = $opt->{alignments};
-    my $sequences     = $opt->{sequences};
 
     ## set defaults for search
     my $cpbase_response = "CpBase_database_response.html"; # HTML
-    $format      //= 'fasta';
-    my $type     = 'fasta';
-    my $alphabet = 'dna';
+    $format //= 'fasta';
     
-    _get_lineage_for_taxon($available, $cpbase_response) and exit(0) if $available && !$db;
-
-    if ($lineage) {
-	if ($db && $genus && $species) {
-	    my $taxonid = _fetch_taxonid($genus, $species);
-            if (defined $taxonid) {
-                my ($lineage, $order, $family) = _get_lineage_from_taxonid($taxonid);
-                say join "\t", $order, $family, $genus, $species if defined $order && defined $family;
-            }
-	}
-	else {
-	    say "\nERROR: 'genus' and 'species' and 'db' are required for getting the taxonomic lineage";
-	}
-    }
+    _get_lineage_for_taxon($available, $cpbase_response, $outfile) and exit(0) if $available && !$db;
 
     if ($statistics) {
 	if (!$genus || !$species) {
@@ -101,35 +69,11 @@ sub _check_args {
 	}
     }
 
-    if ((!$db && $assemblies) || (!$db && $statistics)) {
-	say "\nERROR: A database to query must be given for getting 'statistics' or 'assemblies'. ".
-	    "Or, other arguments may be supplied. Exiting.";
-	exit(1);
-    }
-    
     if ((!$genus && $species) || ($genus && !$species)) {
 	say "\nERROR: Can not query a species without a genus and species name. Exiting.";
 	exit(1);
     }
     
-    if ($gene_clusters && $gene_name) {
-	my $gene_stats = _fetch_ortholog_sets($all, $genus, $species, $gene_name, $alignments, $alphabet, $type);
-	say join "\t", "Gene","Genome","Locus","Product";
-	for my $gene (keys %$gene_stats) {
-	    for my $genome (keys %{$gene_stats->{$gene}}) {
-		for my $locus (keys %{$gene_stats->{$gene}{$genome}}) {
-		    say join "\t", $gene, $genome, $locus, $gene_stats->{$gene}{$genome}{$locus};
-		}
-	    }
-	}
-	exit;
-    }
-
-    if ($rna_clusters && $gene_name) {
-	_fetch_rna_clusters($all, $alignments, $type, $statistics, $sequences, $gene_name, $cpbase_response);
-	exit;
-    }
-
     # make epithet
     my $epithet;
     $epithet = $genus."_".$species if $genus && $species;
@@ -164,6 +108,7 @@ sub _check_args {
     close $out;
     
     my $id_map = _get_species_id($urlbase);
+    my $fh     = _get_fh($outfile);
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
     $te->parse_file($cpbase_response);
@@ -174,11 +119,9 @@ sub _check_args {
 	    if ($elem[0] =~ /(\d+) Genomes/i) {
 		$genomes = $1;
 		unlink $cpbase_response;
-		say "$genomes $db genomes available in CpBase." and exit if $available;
+		say $fh "$genomes $db genomes available in CpBase." and exit if $available && $db;
 	    }
 	    else {
-		say "\nERROR: Be advised, this command would attempt to download $genomes assemblies. ".
-		    "It would be nicer to specify one species. Exiting now.\n" and exit if $assemblies && $all;
 		my ($organism, $locus, $sequence_length, $assembled, $annotated, $added) = @elem;
 		$organism =~ s/\s+/_/g;
 		
@@ -198,7 +141,7 @@ sub _check_args {
 			    $file = $file.".fasta";
 			    $endpoint = $endpoint.".fasta";
 			}
-			_fetch_file($file, $endpoint) if $assemblies;
+			_fetch_file($file, $endpoint);
 		    }
 		    elsif ($genus && $organism =~ /\Q$genus\E/i) {
 			my $id = $id_map->{$organism};
@@ -212,12 +155,13 @@ sub _check_args {
     
     if ($statistics) {
 	for my $genome (keys %stats) {
-	    say "====> Showing chloroplast genome statistics for: $genome";
+	    say $fh "====> Showing chloroplast genome statistics for: $genome";
 	    for my $stat (keys %{$stats{$genome}}) {
-		say join "\t", $stat, $stats{$genome}{$stat};
+		say $fh join "\t", $stat, $stats{$genome}{$stat};
 	    }
 	}
     }
+    close $fh;
     unlink $cpbase_response;
 }
 
@@ -304,225 +248,10 @@ sub _get_cp_data {
     return \%assem_stats;
 }
 
-sub _fetch_ortholog_sets {
-    my ($all, $genus, $species, $gene_name, $alignments, $alphabet, $type) = @_;
-    my %gene_stats;
-    my $mech = WWW::Mechanize->new;
-    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=u_feature_index"; 
-    $mech->get($urlbase);
-    my @links = $mech->links();
-
-    for my $link ( @links ) {
-        next unless defined $link && $link->url =~ /tools/;
-	if ($link->url =~ /u_feature_id=(\d+)/) {
-	    my $id = $1;
-	    my $cpbase_response = "CpBase_database_response_gene_clusters_$id".".html";
-	            
-	    my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?u_feature_id=$id&view=universal_feature"; 
-	    my $response = HTTP::Tiny->new->get($urlbase);
-       
-	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-	    }
-	            
-	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->{content};
-	    close $out;
-	            
-	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
-	    $te->parse_file($cpbase_response);
-	            
-	    for my $ts ($te->tables) {
-		for my $row ($ts->rows) {
-		    my @elem = grep { defined } @$row;
-		    if (defined $elem[1] && $elem[1] eq $link->text) {
-			next if $elem[0] =~ /Gene/i;
-			my ($g, $sp) = split /\s+/, $elem[3] if defined $elem[3];
-
-			if ($alignments && $all) {
-			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    _fetch_file($file, $endpoint);
-			    unlink $cpbase_response;
-			}
-			elsif ($alignments && 
-			       defined $genus && 
-			       $genus =~ /$g/ && 
-			       defined $species && 
-			       $species =~ /$sp/) {
-			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    _fetch_file($file, $endpoint);
-			    unlink $cpbase_response;
-			}
-			elsif ($alignments && 
-			       defined $genus && 
-			       $genus =~ /$g/ && 
-			       defined $species && 
-			       $species =~ /$sp/ && 
-			       defined $gene_name && 
-			       $gene_name =~ /$elem[0]/) {
-			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    _fetch_file($file, $endpoint);
-			    unlink $cpbase_response;
-			}
-			elsif ($alignments &&
-			       !defined $genus && 
-			       !defined $species && 
-			       defined $gene_name && 
-			       $gene_name =~ /$elem[1]/) {
-			    $gene_stats{$elem[1]}{$elem[3]} = { $elem[0] => $elem[2]};
-			    my ($file, $endpoint) = _make_alignment_url_from_gene($link->text, $alphabet, $type);
-			    _fetch_file($file, $endpoint);
-			    unlink $cpbase_response;
-			}
-			else { 
-			    say join "\t", $genus, $g, $species, $sp; 
-			}
-		    }
-		}
-	    }
-	    unlink $cpbase_response if -e $cpbase_response;
-	}
-    }
-    return \%gene_stats;
-}
-
-sub _make_alignment_url_from_gene {
-    my ($gene, $alphabet, $type) = @_;
-
-    my $file = $gene."_orthologs";
-    my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$gene";
-    if ($alphabet =~ /dna/i && $type =~ /fasta/i) {
-	$endpoint .= "_orthologs.nt.aln.fa";
-	$file .= ".nt.aln.fa";
-    }
-    elsif ($alphabet =~ /protein/i && $type =~ /fasta/i) {
-	$endpoint .= "_orthologs.aa.aln.fa";
-	$file .= ".aa.aln.fa";
-    }
-    elsif ($alphabet =~ /dna/i && $type =~ /clustal/i) {
-	$endpoint .= "_orthologs.nt.aln.clw";
-	$file .= ".nt.aln.clw";
-    }
-    elsif ($alphabet =~ /protein/i && $type =~ /clustal/i) {
-	$endpoint .= "_orthologs.aa.aln.clw";
-	$file .= ".aa.aln.clw";
-    }
-    else {
-	die "\nERROR: Could not determine parameter options for fetching ortholog clusters. alpha: $alphabet type: $type";
-    }
-    
-    return ($file, $endpoint)
-}
-
-sub _fetch_rna_clusters {
-    my ($all, $alignments, $type, $statistics, $sequences, $gene_name, $cpbase_response) = @_;
-    my $rna_cluster_stats;
-    my %rna_cluster_links;
-    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?view=rna_cluster_index";
-    my $mech = WWW::Mechanize->new();
-    $mech->get($urlbase);
-    my @links = $mech->links();
-    my $gene;
-    for my $link (@links) {
-        next unless defined $link->text;
-	if ($link->url =~ /u_feature_id=(\d+)/) {
-	    my $id = $1;
-	    $gene = $link->text;
-	    my $url = "http://chloroplast.ocean.washington/tools/cpbase/run?u_feature_id=$id&view=universal_feature";
-	    $rna_cluster_links{$gene} = $url;
-	}
-    }
-    
-    if ($statistics && $all) {
-	for my $gene (keys %rna_cluster_links) {
-	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
-
-	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-	    }
-	            
-	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->{content};
-	    close $out;
-	            
-	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
-	    $te->parse_file($cpbase_response);
-	            
-	    for my $ts ($te->tables) {
-		for my $row ($ts->rows) {
-		    my @elem = grep { defined } @$row;
-		    say join q{, }, @elem;
-		}
-	    }
-	}
-    }
-    elsif ($statistics && $gene_name) { 
-	for my $gene (keys %rna_cluster_links) {
-	    my $response = HTTP::Tiny->new->get($rna_cluster_links{$gene});
-
-	    unless ($response->{success}) {
-		die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-	    }
-	            
-	    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-	    say $out $response->{content};
-	    close $out;
-
-	    my $te = HTML::TableExtract->new( attribs => { border => 1 } );
-	    $te->parse_file($cpbase_response);
-	            
-	    for my $ts ($te->tables) {
-		for my $row ($ts->rows) {
-		    my @elem = grep { defined } @$row;
-		    say join q{, }, @elem;
-		}
-	    }
-	}
-    }
-    elsif ($sequences && $all) {
-	my $file = $gene."_orthologs.nt.fasta";
-	my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	_fetch_file($file, $endpoint);
-    }
-    elsif ($sequences && $gene_name) {
-	if ($gene_name eq $gene) {
-	    my $file = $gene."_orthologs.nt.fasta";
-	    my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	    _fetch_file($file, $endpoint);
-	}
-    }
-    elsif ($alignments && $all) {
-	my $file = $gene."_orthologs.nt.aln.";
-	my $suf; ##TODO
-	$suf = "clw" if $type =~ /cl/i;
-	$suf = "fa" if $type =~ /fa/i;
-	$file .= $suf;
-	my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	_fetch_file($file, $endpoint);
-    }
-    elsif ($alignments && $gene_name) {
-	if ($gene_name eq $gene) {
-	    my $suf; ##TODO
-	    my $file = $gene."_orthologs.nt.aln.";
-	    $suf = "clw" if $type =~ /cl/i;
-	    $suf = "fa" if $type =~ /fa/i;
-	    $file .= $suf;
-	    my $endpoint = "http://chloroplast.ocean.washington.edu/CpBase_data/tmp/$file";
-	    _fetch_file($file, $endpoint);
-	}
-    }
-    unlink $cpbase_response;
-    ## reorder control flow to if gene_name
-    ##                             if sequences
-    ##                             elsif alignments
-    #return \%rna_cluster_stats;
-}
-
 sub _get_lineage_for_taxon {
-    my ($available, $cpbase_response,) = @_;
+    my ($available, $cpbase_response, $outfile) = @_;
+
+    my $fh = _get_fh($outfile);
 
     my %taxa;
     my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run";
@@ -542,28 +271,19 @@ sub _get_lineage_for_taxon {
     for my $ts ($te->tables) {
 	for my $row ($ts->rows) {
 	    my @elem = grep { defined } @$row;
-	    if ($available) {
-		if ($elem[0] =~ /(\d+) Genomes/i) {
-		    my $genomes = $1;
-		    unlink $cpbase_response;
-		    say "$genomes genomes available in CpBase." and exit(0);
-		}
+	    if ($elem[0] =~ /(\d+) Genomes/i) {
+		my $genomes = $1;
+		unlink $cpbase_response;
+		say $fh "$genomes genomes available in CpBase.";
 	    }
-	    my ($organism, $locus, $sequence, $length, $assembled, $annotated, $added) = @elem;
-	    my ($genus, $species) = split /\s+/, $organism;
-	    next unless defined $species && length($species) > 3;
-	    next if $species eq 'hybrid';
-	    my $taxonid = _fetch_taxonid($genus, $species);
-	    if (defined $taxonid) {
-		my ($lineage, $order, $family) = _get_lineage_from_taxonid($taxonid);
-		say join "\t", $order, $family, $genus, $species if defined $order && defined $family;
-	    } 
 	}
     }
+    close $fh;
 
     exit;
 }
 
+<<<<<<< HEAD
 sub _get_lineage_from_taxonid {
     my ($id) = @_;
     my $esumm = "esumm_$id.xml"; 
@@ -604,6 +324,8 @@ sub _get_lineage_from_taxonid {
     return ($lineage, $order, $family);
 }
 
+=======
+>>>>>>> topic/simplify_search
 sub _fetch_taxonid {
     my ($genus, $species) = @_;
 
@@ -619,13 +341,11 @@ sub _fetch_taxonid {
     say $out $response->{content};
     close $out;
 
-    my $id;
-    my $parser = XML::LibXML->new;
-    my $doc    = $parser->parse_file($esearch);
-    
-    for my $node ( $doc->findnodes('//eSearchResult/IdList') ) {
-	($id) = $node->findvalue('Id/text()');
-    }
+    my $parser = XML::Twig->new;
+    $parser->parsefile($esearch);
+
+    my @nodes = $parser->findnodes( '/eSearchResult/IdList/Id' );
+    my $id = pop(@nodes)->text();
     
     unlink $esearch;
     
@@ -648,6 +368,20 @@ sub _fetch_file {
 	say $out $response->{content};
 	close $out;
     }
+}
+
+sub _get_fh {
+    my ($outfile) = @_;
+
+    my $fh;
+    if ($outfile) {
+	open $fh, '>', $outfile or die "\nERROR: Could not open file: $outfile\n";;
+    } 
+    else {
+	$fh = \*STDOUT;
+    }
+
+    return $fh;
 }
 
 1;
