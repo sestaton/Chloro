@@ -6,5 +6,5 @@ requires 'App::Cmd',              '0.323';
 requires 'WWW::Mechanize';
 requires 'Time::HiRes';
 requires 'Try::Tiny';
-requires 'XML::LibXML';
+requires 'XML::Twig';
 #requires 'BioPerl';                        # required by VelvetOptimiser
