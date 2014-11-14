@@ -6,6 +6,9 @@ elif [ ! -d data ]; then
     mkdir -p data src
 fi
 
+vers=`perl -Ilib bin/chloro --version | sed 's/chloro //;s/[()]//g;s/ bin\/chloro//'`
+echo -e "========== Getting dependencies for: $vers ==========\n"
+
 cd src
 
 ## Velvet
@@ -25,3 +28,5 @@ cd ..
 cd bin
 curl -o pairfq_lite.pl https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
 chmod +x pairfq_lite.pl
+
+echo -e "\n========== Done with dependencies, now building package: $vers =========="
