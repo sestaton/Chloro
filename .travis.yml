@@ -10,7 +10,6 @@ before_install:
   - build-perl
   - perl -V
   - cpanm -n BioPerl
-  - ./install_deps.sh
 
 script: perl Makefile.PL && make test
 
