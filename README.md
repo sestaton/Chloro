@@ -45,7 +45,7 @@ For the sake of example, we will assume that we have read data from a sunflower 
 
 **1. Create a database of chloroplast genome(s)**
 
-    ./bin/chloro cpbase_search -g helianthus -s annuus --assemblies -d viridiplantae
+    ./bin/chloro cpbase_search -g helianthus -s annuus -d viridiplantae
 
 **2. Screen the reads against the reference database**
 
