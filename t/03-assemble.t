@@ -31,7 +31,7 @@ for my $opt (@menu) {
 
 is( $opts, 5, 'Correct number of options for chloro assemble' );
 
-my @assemb_results = capture([0..5], "$cmd -p $pairfile -u $upairfile -s 59 -e 59");
+my @assemb_results = capture([0..5], "$cmd assemble -p $pairfile -u $upairfile -s 59 -e 59");
 
 my @log;
 find( sub {
