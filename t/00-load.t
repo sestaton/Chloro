@@ -3,6 +3,7 @@
 use 5.010;
 use strict;
 use warnings FATAL => 'all';
+use File::Spec;
 use IPC::System::Simple qw(capture);
 use Test::More tests => 3;
 
@@ -12,10 +13,10 @@ BEGIN {
 
 diag( "Testing Chloro $Chloro::VERSION, Perl $], $^X" );
 
-my $chloro = "bin/chloro";
-ok(-x $chloro, 'Can execute chloro');
+my $cmd = File::Spec->catfile('bin', 'chloro');
+ok(-x $cmd, 'Can execute chloro');
 
-my @menu = capture([0..5], "bin/chloro help");
+my @menu = capture([0..5], "$cmd help");
 
 my $progs = 0;
 for my $command (@menu) {
