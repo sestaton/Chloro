@@ -33,8 +33,11 @@ sub validate_args {
     if ($self->app->global_options->{man}) {
 	system([0..5], "perldoc $command");
     }
+    elsif ($self->app->global_options->{help}) {
+        $self->help;
+    }
     else {
-	$self->usage_error("Too few arguments.") if !%$opt;
+        $self->help and exit(0) if !%$opt;
     }
 } 
 
@@ -341,6 +344,27 @@ sub _get_fh {
     return $fh;
 }
 
+sub help {
+    print STDERR<<END
+
+Usage:
+chloro cpbase_search [-h] [-m]
+    -m --man       :   Get the manual entry for a command.
+    -h --help      :   Print the command usage.
+
+Options:
+    --available    :   Print the number of species available in CpBase and exit.
+    -d|db          :   The database to search. 
+                       Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles.
+    -f|format      :   Format of the sequence file to fetch. Options are: Genbank or Fasta (Default: Fasta).
+    -g|genus,      :   The name of a genus query.
+    -s|species     :   The name of a species to query.
+    --statistics   :   Get assembly statistics for the specified species.
+    -o|outfile     :   A file to log the results of each search.
+
+END
+}
+
 1;
 __END__
 
@@ -367,11 +391,6 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =over 2
 
-=item --all
-
-Download files of the specified type for all species in the database (applies to the --gene_clusters
-and --rna_clusters options).
-
 =item --available
 
 Print the number of species available in CpBase and exit.
@@ -382,7 +401,7 @@ The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red l
 
 =item -f, --format
 
-Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta).
+Format of the sequence file to fetch. Options are: Genbank or Fasta (Default: Fasta).
 
 =item -g, --genus
 
@@ -392,43 +411,15 @@ The name of a genus query.
 
 The name of a species to query.
 
-=item -r, --rna_clusters
-
-Download RNA clusters for the specified genes.
-
-=item -c, --gene_clusters
-
-Fetch gene cluster information.
-
-=item -n, --gene_name
-
-The name of a specific gene to fetch ortholog cluster stats or alignments for.
-
-=item --alignments
-
-Download ortholog alignments for a gene, or all genes.
-
 =item --statistics
 
 Get assembly statistics for the specified species.
-
-=item --sequences
-
-Download RNA cluster ortholog sequences for each gene (if --all) or specific genes (if --gene_name).
-
-=item --assemblies
-
-Specifies that the chlorplast genome assemblies should be fetched.
-
-=item -l, --lineage
-
-Return the order, family, genus and species (tab separated) of all entries.
 
 =item -o, --outfile
 
 A file to log the results of each search
 
-=item help
+=item -h, --help
 
 Print a usage statement. 
 

@@ -33,8 +33,11 @@ sub validate_args {
     if ($self->app->global_options->{man}) {
 	system([0..5], "perldoc $command");
     }
+    elsif ($self->app->global_options->{help}) {
+        $self->help;
+    }
     else {
-	$self->usage_error("Too few arguments.") 
+        $self->help and exit(0)
 	    unless $opt->{infile} && $opt->{outfile} && $opt->{database} && $opt->{seqnum};
     }
 } 
@@ -390,6 +393,27 @@ sub _get_fh {
     return $fh;
 }
 
+sub help {
+    print STDERR<<END
+
+Usage:
+chloro screen_reads [-h] [-m]
+    -m --man       :   Get the manual entry for a command.
+    -h --help      :   Print the command usage.
+
+Required:
+    -i|infile      :   Fasta file of reads or contigs to filter
+    -o|outfile     :   A file to place the filtered sequences.
+    -d|database    :   The Fasta file to use a screening database.
+    -n|seqnum      :   The number of sequences to process with each thread.
+
+Options:
+    -l|length      :   Length (integer) to be used as the lower threshold for filtering (Default: 50).
+    -t|threads     :   Number of threads to create (Default: 1).
+    -a|cpu         :   Number of processors to use for each thread (Default: 1).
+
+END
+}
 
 1;
 __END__
@@ -406,7 +430,7 @@ chloro screenreads -i seqs.fas -d ref_cp.fas -o seqs_cp.fas -t 2 -n 100000 --cpu
 
 =head1 DESCRIPTION
      
-This script can accelerate screening reads by splitting an input file and 
+This command can accelerate screening reads by splitting an input file and 
 running BLAST on multiple subsets of sequences concurrently. The size of 
 the splits to make and the number of threads to create are optional. The 
 input set of sequences may be in fasta or fastq format, and the files may

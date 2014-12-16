@@ -28,15 +28,20 @@ sub validate_args {
     if ($self->app->global_options->{man}) {
 	system([0..5], "perldoc $command");
     }
+    elsif ($self->app->global_options->{help}) {
+	$self->help;
+    }
     else {
-	$self->usage_error("Too few arguments.") unless $opt->{paired};
+	$self->help and exit(0) 
+	    unless $opt->{paired} && $opt->{unpaired};
     }
 } 
 
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    exit(0) if $self->app->global_options->{man};
+    exit(0) if $self->app->global_options->{man} ||
+	$self->app->global_options->{help};
 
     my $result = _run_assembly($opt);
 }
@@ -95,6 +100,26 @@ sub _run_assembly {
     return $exit_value;
 }
 
+sub help {
+    print STDERR<<END
+
+Usage:
+chloro assemble [-h] [-m]
+    -m --man      :   Get the manual entry for a command.
+    -h --help     :   Print the command usage.
+
+Required:
+    -p|paired     :   A file of paired, interleaved chlorplast sequences to be assembled.
+    -u|unpaired   :   The file of unpaired, singleton sequences.
+
+Options:
+    -t|threads    :   The number of threads (hash steps) to execute simultaneously (Default: 1).
+    -s|hashs      :   The starting hash size (Default: 59).
+    -e|hashe      :   The maximum hash size (Default: 89).
+
+END
+}
+
 
 1;
 __END__
@@ -149,7 +174,7 @@ The starting hash length for Velvet (Default: 59).
 
 The ending hash length for Velvet (Default: 89).
 
-=item help
+=item -h, --help
 
 Print a usage statement. 
 
