@@ -6,12 +6,9 @@ use warnings FATAL => 'all';
 use File::Basename;
 use File::Spec;
 use IPC::System::Simple qw(capture);
-use Test::More tests => 8;
 
-my $cmd  = File::Spec->catfile('bin', 'chloro');
-my @menu = capture([0..5], "$cmd help screen_reads");
+use Test::More tests => 7;
 
-my $opts     = 0;
 my $tot      = 0;
 my $scr      = 0;
 my $seqnum   = 100000;
@@ -19,16 +16,7 @@ my $outfile  = File::Spec->catfile('t', 'test_data', 't_cpseqs_screened.fas');
 my $infile   = File::Spec->catfile('t', 'test_data', 't_reads.fq.bz2');
 my $database = File::Spec->catfile('t', 'test_data', 'Helianthus_annuus_NC_007977.fasta');
 
-for my $opt (@menu) {
-    next if $opt =~ /^Err|^Usage|^chloro|^ *$/;
-    $opt =~ s/^\s+//;
-    next unless $opt =~ /^-/;
-    my ($option, $desc) = split /\s+/, $opt;
-    ++$opts if $option;
-}
-
-is( $opts, 7, 'Correct number of options for chloro screen_reads' );
-
+my $cmd = File::Spec->catfile('bin', 'chloro');
 my @scr_results = capture([0..5], "$cmd screen_reads -i $infile -o $outfile -d $database -n $seqnum -l 50");
 ok( -e $outfile, 'Can screen reads against a chloroplast genome' );
 

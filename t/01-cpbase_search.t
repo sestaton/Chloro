@@ -4,27 +4,17 @@ use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use IPC::System::Simple qw(system capture);
+use File::Copy          qw(move);
 use File::Spec;
-use File::Copy qw(move);
-use Test::More tests => 21;
 
-my $cmd  = File::Spec->catfile('bin', 'chloro');
-my @menu = capture([0..5], "$cmd help cpbase_search");
+use Test::More tests => 20;
 
-my $opts   = 0;
 my $expnum = 0;
 my $sunfl_fa_genome = 'Helianthus_annuus_NC_007977.fasta';
 my $sunfl_gb_genome = 'Helianthus_annuus_NC_007977.gb';
 my $search_out      = 'cpstats.txt';
 
-for my $opt (@menu) {
-    next if $opt =~ /^chloro|^ *$/;
-    $opt =~ s/^\s+//;
-    ++$opts if $opt =~ /^-/;
-}
-
-is( $opts, 7, 'Correct number of options for chloro cpbase_search' );
-
+my $cmd = File::Spec->catfile('bin', 'chloro');
 my @genomes = capture([0..5], "$cmd cpbase_search --available");
 
 my ($genome_num) = map { /^(\d+) genomes/ } @genomes;

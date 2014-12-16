@@ -3,17 +3,14 @@
 use 5.010;
 use strict;
 use warnings FATAL => 'all';
-use autodie qw(open);
+use autodie             qw(open);
 use IPC::System::Simple qw(capture);
+use File::Path          qw(remove_tree);
 use File::Find;
 use File::Spec;
-use File::Path qw(remove_tree);
-use Test::More tests => 15;
 
-my $cmd  = File::Spec->catfile('bin', 'chloro');
-my @menu = capture([0..5], "$cmd help assemble");
+use Test::More tests => 14;
 
-my $opts      = 0;
 my $tot       = 0;
 my $scr       = 0;
 my $seqnum    = 20;
@@ -21,16 +18,7 @@ my $outdir    = "VelvetOpt_k59-k59";
 my $pairfile  = File::Spec->catfile('t', 'test_data', 't_cpseqs_screened_paired_interl.fas');
 my $upairfile = File::Spec->catfile('t', 'test_data', 't_cpseqs_screened_unpaired.fas');
 
-for my $opt (@menu) {
-    next if $opt =~ /^Err|^Usage|^chloro|^ *$/;
-    $opt =~ s/^\s+//;
-    next unless $opt =~ /^-/;
-    my ($option, $desc) = split /\s+/, $opt;
-    ++$opts if $option;
-}
-
-is( $opts, 5, 'Correct number of options for chloro assemble' );
-
+my $cmd = File::Spec->catfile('bin', 'chloro');
 my @assemb_results = capture([0..5], "$cmd assemble -p $pairfile -u $upairfile -s 59 -e 59");
 
 my @log;
