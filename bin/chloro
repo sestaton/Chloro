@@ -10,7 +10,6 @@ our $VERSION = '0.04';
 
 my $cmd = Chloro->new({ no_help_plugin => 1, no_commands_plugin => 1 });
 $cmd->default_command( $cmd->help ) and exit unless @ARGV;
-#Chloro->run;
 $cmd->run;
 
 
@@ -77,11 +76,11 @@ S. Evan Staton, C<< <statonse at gmail.com> >>
 
 =over 2
 
-=item help
+=item -h, --help
 
   Print a usage statement for a specific command. 
 
-=item --man
+=item -m, --man
   
   Print the full documentation for a specific command.
 
