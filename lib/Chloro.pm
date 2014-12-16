@@ -15,9 +15,28 @@ Version 0.04
 our $VERSION = '0.04';
 
 sub global_opt_spec {
-    [ 'man|m' => "Get the manual entry for a command" ];
+    return (
+	[ 'man|m' => "Get the manual entry for a command" ],
+	[ 'help|h' => "Print some usage" ],
+    );
 }
 
+sub help {
+    print STDERR<<END
+
+Usage:
+chloro <command> [-h] [-m]
+    -m --man        :    Get the manual entry for a command.
+    -h --help       :    Print the command usage.
+
+Available commands:
+    assemble        :   Run many chloroplast genome assemblies and pick the best one. 
+    cpbase_search   :   Download chloroplast genes or genomes from CpBase. 
+    screen_reads    :   Extract chloroplast regions from a read set.
+
+END
+}
+       
 =head1 AUTHOR
 
 S. Evan Staton, C<< <statonse at gmail.com> >>

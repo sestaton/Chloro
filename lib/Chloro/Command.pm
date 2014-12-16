@@ -14,25 +14,27 @@ Version 0.04
 
 our $VERSION = '0.04';
 
-sub opt_spec {
-    my ( $class, $app ) = @_;
-  return (
-    [ 'help' => "this usage screen" ],
-    $class->options($app),
-  )
-}
+#sub opt_spec {
+#    my ( $class, $app ) = @_;
+#  return (
+#    [ 'help' => "this usage screen", { default => $class->help } ],
+#    $class->options($app),
+#  )
+#}
  
-sub validate_args {
-    my ( $self, $opt, $args ) = @_;
-    if ( $opt->{help} ) {
-	my ($command) = $self->command_names;
-	$self->app->execute_command(
-				    $self->app->prepare_command("help", $command)
-				    );
-	exit;
-    }
-    $self->validate( $opt, $args );
-}
+#sub validate_args {
+#    my ( $self, $opt, $args ) = @_;
+    #if ( $opt->{help} ) {
+	#my ($command) = $self->command_names;
+	#$self->app->execute_command(
+	    #$self->app->prepare_command("help", $command->help)
+	    #$self->app->prepare_command( $command->help )
+	 #   $command->help
+		#		    );
+	#exit;
+    #}
+#    $self->validate( $opt, $args );
+#}
 
 =head1 AUTHOR
 
