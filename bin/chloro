@@ -8,7 +8,11 @@ use Chloro;
 
 our $VERSION = '0.04';
 
-Chloro->run;
+my $cmd = Chloro->new({ no_help_plugin => 1, no_commands_plugin => 1 });
+$cmd->default_command( $cmd->help ) and exit unless @ARGV;
+#Chloro->run;
+$cmd->run;
+
 
 __END__
 
