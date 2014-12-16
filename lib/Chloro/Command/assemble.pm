@@ -31,9 +31,9 @@ sub validate_args {
     elsif ($self->app->global_options->{help}) {
 	$self->help;
     }
-    else {
-	$self->help and exit(0) 
-	    unless $opt->{paired} && $opt->{unpaired};
+    elsif (!$opt->{paired} && !$opt->{unpaired}) {
+	say "\nERROR: Required arguments not given.";
+	$self->help and exit(0);
     }
 } 
 
@@ -103,8 +103,7 @@ sub _run_assembly {
 sub help {
     print STDERR<<END
 
-Usage:
-chloro assemble [-h] [-m]
+USAGE: chloro assemble [-h] [-m]
     -m --man      :   Get the manual entry for a command.
     -h --help     :   Print the command usage.
 

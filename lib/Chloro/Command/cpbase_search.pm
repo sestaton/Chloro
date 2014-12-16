@@ -5,7 +5,8 @@ use 5.010;
 use strict;
 use warnings;
 use Chloro -command;
-use Time::HiRes qw(gettimeofday);
+use IPC::System::Simple qw(system);
+use Time::HiRes         qw(gettimeofday);
 use HTTP::Tiny;
 use WWW::Mechanize;
 use HTML::TableExtract;
@@ -36,15 +37,18 @@ sub validate_args {
     elsif ($self->app->global_options->{help}) {
         $self->help;
     }
-    else {
-        $self->help and exit(0) if !%$opt;
+    elsif (!%$opt) {
+	say "\nERROR: Required arguments not given.";
+        $self->help and exit(0);
     }
 } 
 
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    exit(0) if $self->app->global_options->{man};
+    exit(0) if $self->app->global_options->{man} ||
+	$self->app->global_options->{help};
+
     my $result = _check_args($opt);
 }
 
@@ -347,8 +351,7 @@ sub _get_fh {
 sub help {
     print STDERR<<END
 
-Usage:
-chloro cpbase_search [-h] [-m]
+USAGE: chloro cpbase_search [-h] [-m]
     -m --man       :   Get the manual entry for a command.
     -h --help      :   Print the command usage.
 

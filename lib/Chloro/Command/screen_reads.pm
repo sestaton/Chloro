@@ -36,16 +36,18 @@ sub validate_args {
     elsif ($self->app->global_options->{help}) {
         $self->help;
     }
-    else {
-        $self->help and exit(0)
-	    unless $opt->{infile} && $opt->{outfile} && $opt->{database} && $opt->{seqnum};
+    elsif (!$opt->{infile} && !$opt->{outfile} && !$opt->{database} && !$opt->{seqnum}) {
+	say "\nERROR: Required arguments not given.";
+        $self->help and exit(0);
     }
 } 
 
 sub execute {
     my ($self, $opt, $args) = @_;
 
-    exit(0) if $self->app->global_options->{man};
+    exit(0) if $self->app->global_options->{man} ||
+	$self->app->global_options->{help};
+
     my $blastfile = _run_screening($opt);
     my $scr_reads = _filter_hits($opt, $blastfile);
     my $result    = _repair_reads($scr_reads);
@@ -396,13 +398,12 @@ sub _get_fh {
 sub help {
     print STDERR<<END
 
-Usage:
-chloro screen_reads [-h] [-m]
+USAGE: chloro screen_reads [-h] [-m]
     -m --man       :   Get the manual entry for a command.
     -h --help      :   Print the command usage.
 
 Required:
-    -i|infile      :   Fasta file of reads or contigs to filter
+    -i|infile      :   Fasta file of reads or contigs to filter.
     -o|outfile     :   A file to place the filtered sequences.
     -d|database    :   The Fasta file to use a screening database.
     -n|seqnum      :   The number of sequences to process with each thread.
