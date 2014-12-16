@@ -1,6 +1,14 @@
-Revision history for HMMER2GO
+Revision history for Chloro
 
 Version	Date	Location
+0.05	12/16/2014	Vancouver, BC
+
+- Fix name of package in changelog!
+- Add custom usage menus for all commands to make the
+  commands easier to use.
+- Streamline tests by removing trivial tests and add
+  portable file handling.
+
 0.04	11/13/2014	Vancouver, BC
 
 - Simplify usage of 'cpbase_search' command by limiting
