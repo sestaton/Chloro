@@ -16,7 +16,7 @@ our $VERSION = '0.04';
 
 sub global_opt_spec {
     return (
-	[ 'man|m' => "Get the manual entry for a command" ],
+	[ 'man|m'  => "Get the manual entry for a command" ],
 	[ 'help|h' => "Print some usage" ],
     );
 }
@@ -24,8 +24,7 @@ sub global_opt_spec {
 sub help {
     print STDERR<<END
 
-Usage:
-chloro <command> [-h] [-m]
+USAGE: chloro <command> [-h] [-m]
     -m --man        :    Get the manual entry for a command.
     -h --help       :    Print the command usage.
 
