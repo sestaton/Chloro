@@ -6,7 +6,7 @@ use warnings;
 use lib qw(blib/lib);
 use Chloro;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 my $cmd = Chloro->new({ no_help_plugin => 1, no_commands_plugin => 1 });
 $cmd->default_command( $cmd->help ) and exit unless @ARGV;
