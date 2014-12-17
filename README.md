@@ -66,7 +66,7 @@ In this command, the argument to the `-p` flag is the interleaved, paired reads 
 
 Each subcommand can be executed with no arguments to generate a help menu. Alternatively, you may specify the help message explicitly. For example,
 
-    chloro help assemble
+    chloro assemble --help
 
 More information about each command is available by accessing the full documentation at the command line. For example,
 
