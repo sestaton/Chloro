@@ -80,7 +80,7 @@ Report any issues at the Chloro issue tracker: https://github.com/sestaton/Chlor
 
 **ATTRIBUTION**
 
-This project uses the readfq library written by Heng Li. The readfq code has been modified for error handling and to parse the comment line in the Casava header.
+This project uses the [readfq](https://github.com/lh3/readfq) library written by Heng Li. The readfq code has been modified for error handling and to parse the comment line in the Casava header. It has also been modified to work with recent versions of Perl.
 
 [Pairfq](https://github.com/sestaton/Pairfq) is used for pairing reads prior to assembly.
 
@@ -88,7 +88,7 @@ A modified version of [VelvetOptimiser](https://github.com/Victorian-Bioinformat
 
 **LICENSE AND COPYRIGHT**
 
-Copyright (C) 2014 S. Evan Staton
+Copyright (C) 2014-2015 S. Evan Staton
 
 This program is distributed under the MIT (X11) License, which should be distributed with the package. If not, it can be found here: http://www.opensource.org/licenses/mit-license.php
 
