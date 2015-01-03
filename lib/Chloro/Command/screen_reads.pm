@@ -124,16 +124,14 @@ sub _run_blast {
     my $suffix = ".bln";
     my $subseq_out = $subfile."_".$dbfile.$suffix;
 
-    my (@blast_cmd, $exit_value);
-    @blast_cmd = "blastall ". 
-                 "-p blastn ".
-		 #"-e 1e-5 ". 
-		 "-F F ".
-		 "-i $subseq_file ".
-		 "-d $db_path ".
-		 "-o $subseq_out ".
-		 "-a $cpu ".
-		 "-m 8";
+    my @blast_cmd = "blastall ". 
+	            "-p blastn ".
+		    "-F F ".
+		    "-i $subseq_file ".
+		    "-d $db_path ".
+		    "-o $subseq_out ".
+		    "-a $cpu ".
+		    "-m 8";
 
     _run_cmd(\@blast_cmd, 'blastall');
     
