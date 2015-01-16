@@ -55,13 +55,13 @@ sub execute {
 sub _check_args {
     my ($opt) = @_;
     
-    my $outfile       = $opt->{outfile};
-    my $db            = $opt->{db};
-    my $format        = $opt->{format};
-    my $genus         = $opt->{genus};
-    my $species       = $opt->{species};
-    my $statistics    = $opt->{statistics};
-    my $available     = $opt->{available};
+    my $outfile    = $opt->{outfile};
+    my $db         = $opt->{db};
+    my $format     = $opt->{format};
+    my $genus      = $opt->{genus};
+    my $species    = $opt->{species};
+    my $statistics = $opt->{statistics};
+    my $available  = $opt->{available};
 
     ## set defaults for search
     my $cpbase_response = "CpBase_database_response.html"; # HTML
