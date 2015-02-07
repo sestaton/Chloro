@@ -80,7 +80,7 @@ Report any issues at the Chloro issue tracker: https://github.com/sestaton/Chlor
 
 **ATTRIBUTION**
 
-This project uses the readfq library written by Heng Li. The readfq code has been modified for error handling and to parse the comment line in the Casava header.
+This project uses the [readfq](https://github.com/lh3/readfq) library written by Heng Li. The readfq code has been modified for error handling and to parse the comment line in the Casava header. It has also been modified to work with recent versions of Perl.
 
 [Pairfq](https://github.com/sestaton/Pairfq) is used for pairing reads prior to assembly.
 

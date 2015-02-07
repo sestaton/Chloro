@@ -17,13 +17,13 @@ no if $] >= 5.018, 'warnings', "experimental::smartmatch";
 
 sub opt_spec {
     return (
-	[ "available",       "Print the number of species available in CpBase and exit." ],
-	[ "db|d=s",          "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
-        [ "format|f=s",      "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
-        [ "genus|g=s",       "The name of a genus query." ],
-	[ "species|s=s",     "The name of a species to query." ],
-        [ "statistics",      "Get assembly statistics for the specified species." ],
-	[ "outfile|o=s",     "A file to log the results of each search" ],
+	[ "available",   "Print the number of species available in CpBase and exit." ],
+	[ "db|d=s",      "The database to search. Must be one of: viridiplantae, non_viridiplanate, 'red lineage', rhodophyta, or stramenopiles." ],
+        [ "format|f=s",  "Format of the sequence file to fetch. Options are: genbank or fasta (Default: fasta)." ],
+        [ "genus|g=s",   "The name of a genus query." ],
+	[ "species|s=s", "The name of a species to query." ],
+        [ "statistics",  "Get assembly statistics for the specified species." ],
+	[ "outfile|o=s", "A file to log the results of each search" ],
     );
 }
 
@@ -55,13 +55,13 @@ sub execute {
 sub _check_args {
     my ($opt) = @_;
     
-    my $outfile       = $opt->{outfile};
-    my $db            = $opt->{db};
-    my $format        = $opt->{format};
-    my $genus         = $opt->{genus};
-    my $species       = $opt->{species};
-    my $statistics    = $opt->{statistics};
-    my $available     = $opt->{available};
+    my $outfile    = $opt->{outfile};
+    my $db         = $opt->{db};
+    my $format     = $opt->{format};
+    my $genus      = $opt->{genus};
+    my $species    = $opt->{species};
+    my $statistics = $opt->{statistics};
+    my $available  = $opt->{available};
 
     ## set defaults for search
     my $cpbase_response = "CpBase_database_response.html"; # HTML
