@@ -26,7 +26,7 @@ curl -L https://api.github.com/repos/sestaton/Chloro/tarball > chloro.tar.gz
 tar xzf chloro.tar.gz
 mv sestaton-Chloro* Chloro
 cd Chloro
-cpanm --installdeps .
+curl -L cpanmin.us | perl - --installdeps .
 perl Makefile.PL && make
 ```
 
