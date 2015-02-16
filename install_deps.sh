@@ -15,7 +15,7 @@ cd src
 curl -L https://api.github.com/repos/dzerbino/velvet/tarball > velvet.tar.gz
 tar xzf velvet.tar.gz
 mv dzerbino-velvet* velvet && cd velvet
-make MAXKMERLENGTH=99
+make MAXKMERLENGTH=99 2> /dev/null
 cd ..
 
 ## VelvetOptimiser
@@ -26,7 +26,6 @@ cd ..
 
 ## Pairfq-lite
 cd bin
-#curl -o pairfq_lite.pl https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
 curl -L git.io/pairfq_lite > pairfq_lite
 chmod +x pairfq_lite
 
