@@ -5,14 +5,14 @@ use 5.010;
 use strict;
 use warnings;
 use Chloro -command;
+use Cwd                 qw(abs_path getcwd);
 use IPC::System::Simple qw(system);
-use Time::HiRes qw(gettimeofday);
+use Time::HiRes         qw(gettimeofday);
 use Parallel::ForkManager;
 use File::Basename;
 use File::Spec;
 use File::Temp;
 use Try::Tiny;
-use Cwd qw(abs_path getcwd);;
 
 sub opt_spec {
     return (    
