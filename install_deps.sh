@@ -26,7 +26,8 @@ cd ..
 
 ## Pairfq-lite
 cd bin
-curl -o pairfq_lite.pl https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
-chmod +x pairfq_lite.pl
+#curl -o pairfq_lite.pl https://raw.githubusercontent.com/sestaton/Pairfq/master/scripts/pairfq_lite.pl
+curl -L git.io/pairfq_lite > pairfq_lite
+chmod +x pairfq_lite
 
 echo -e "\n========== Done with dependencies, now building package: $vers =========="
