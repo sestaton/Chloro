@@ -142,7 +142,7 @@ sub _make_blastdb {
     my ($database, $dbfile, $dbdir) = @_;
 
     $dbfile =~ s/\.f.*//;
-    my $db      = $dbfile."_chloro_blastdb";
+    my $db = $dbfile."_chloro_blastdb";
     my $db_path = File::Spec->catfile($dbdir, $db);
     unlink $db_path if -e $db_path;
     my $format_log = 'formatdb.log';
@@ -255,7 +255,7 @@ sub _repair_reads {
     my $cmd_dir = basename(dirname(abs_path($file)));
     my $hmm_dir = basename(dirname($cmd_dir));
     my $chl_dir = basename(dirname($hmm_dir));
-    my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'bin', 'pairfq_lite.pl');
+    my $pairfq  = File::Spec->catfile(abs_path($chl_dir), 'bin', 'pairfq_lite');
 
     unless (-e $pairfq) {
 	die "\nERROR: 'pairfq_lite.pl' script not found. Please run the 'install_deps.sh' script before proceeding. Exiting.\n";
