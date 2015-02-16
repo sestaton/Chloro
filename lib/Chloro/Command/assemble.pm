@@ -5,11 +5,11 @@ use 5.010;
 use strict;
 use warnings;
 use Chloro -command;
+use Cwd                 qw(abs_path);
 use IPC::System::Simple qw(system);
-use Capture::Tiny qw(:all);
+use Capture::Tiny       qw(:all);
 use File::Basename;
 use File::Spec;
-use Cwd qw(abs_path);
 
 sub opt_spec {
     return (    
