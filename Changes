@@ -1,6 +1,13 @@
 Revision history for Chloro
 
 Version	Date	Location
+0.06	FUTURE RELEASE
+
+- Change name of pairfq script.
+- Simplify method of downloading pairfq by using git.io link.
+- Reduce code in cpbase fetch command by putting methods to get a
+  response in a subroutine.
+
 0.05	12/16/2014	Vancouver, BC
 
 - Fix name of package in changelog!
