@@ -103,17 +103,8 @@ sub _check_args {
     }
     
     my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run&genome_taxonomy=$db";
-    my $response = HTTP::Tiny->new->get($urlbase);
+    _fetch_file($cpbase_response, $urlbase);
 
-    # check for a response 
-    unless ($response->{success}) { 
-	die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason}; 
-    }             
-
-    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->{content};
-    close $out;
-    
     my $id_map = _get_species_id($urlbase);
     my $fh     = _get_fh($outfile);
 
@@ -198,15 +189,7 @@ sub _get_cp_data {
     my %assem_stats;
     my $cpbase_response = "CpBase_database_response_$id".".html";
     my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run?genome_id=$id&view=genome";
-    my $response = HTTP::Tiny->new->get($urlbase);
-
-    unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-    }
-
-    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->{content};
-    close $out;
+    _fetch_file($cpbase_response, $urlbase);
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
     $te->parse_file($cpbase_response);
@@ -261,16 +244,8 @@ sub _get_lineage_for_taxon {
     my $fh = _get_fh($outfile);
 
     my %taxa;
-    my $urlbase = "http://chloroplast.ocean.washington.edu/tools/cpbase/run";
-    my $response = HTTP::Tiny->new->get($urlbase);
-
-    unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-    }
-
-    open my $out, '>', $cpbase_response or die "\nERROR: Could not open file: $!\n";
-    say $out $response->{content};
-    close $out;
+    my $urlbase  = "http://chloroplast.ocean.washington.edu/tools/cpbase/run";
+    _fetch_file($cpbase_response, $urlbase);
 
     my $te = HTML::TableExtract->new( attribs => { border => 1 } );
     $te->parse_file($cpbase_response);
@@ -295,15 +270,7 @@ sub _fetch_taxonid {
 
     my $esearch  = "esearch_$genus"."_"."$species.xml";
     my $urlbase  = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=taxonomy&term=$genus%20$species";
-    my $response = HTTP::Tiny->new->get($urlbase);
-
-    unless ($response->{success}) {
-        die "Can't get url $urlbase -- Status: ", $response->{status}, " -- Reason: ", $response->{reason};
-    }
-
-    open my $out, '>', $esearch or die "\nERROR: Could not open file: $!\n";
-    say $out $response->{content};
-    close $out;
+    _fetch_file($esearch, $urlbase);
 
     my $parser = XML::Twig->new;
     $parser->parsefile($esearch);
