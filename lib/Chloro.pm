@@ -8,11 +8,11 @@ Chloro - Automated chloroplast genome assembly
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub global_opt_spec {
     return (
