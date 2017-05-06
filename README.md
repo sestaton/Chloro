@@ -86,9 +86,11 @@ This project uses the [readfq](https://github.com/lh3/readfq) library written by
 
 A modified version of [VelvetOptimiser](https://github.com/Victorian-Bioinformatics-Consortium/VelvetOptimiser) is used for assembly. This code may be obtained from here: https://github.com/sestaton/VelvetOptimiser
 
+Note that these components are installed or integrated with `Chloro` and do not need to be installed independently.
+
 **LICENSE AND COPYRIGHT**
 
-Copyright (C) 2014-2015 S. Evan Staton
+Copyright (C) 2014-2017 S. Evan Staton
 
 This program is distributed under the MIT (X11) License, which should be distributed with the package. If not, it can be found here: http://www.opensource.org/licenses/mit-license.php
 
