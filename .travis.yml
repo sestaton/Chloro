@@ -9,7 +9,7 @@ before_install:
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
-  - cpanm -n BioPerl
+  - cpanm -n Bio::Root::Version
 
 script: perl Makefile.PL && make test
 
