@@ -5,6 +5,10 @@ Automated chloroplast genome assembly
 
 [![Build Status](https://travis-ci.org/sestaton/Chloro.svg?branch=master)](https://travis-ci.org/sestaton/Chloro)
 
+# DEPRECATED
+
+**Thank you for your interest but this tool is no longer maintained. The database it relied on went offline and is no longer maintained, so it would take a lot of work to redesign. Since I have no use for this tool at the moment, it will not be maintained.**
+
 **DESCRIPTION**
 
 `Chloro` is a command-line tool that will aid in the process of chloroplast genome assembly and annotation. The input will be NGS data from a 454 or Illumina machine (see below for more information). The general approach is to screen reads against a database of closely related chloroplast genomes, then assemble only those read portions matching the reference sequences. Next, we use the reference to transfer annotations to the assembly (not yet implemented).
